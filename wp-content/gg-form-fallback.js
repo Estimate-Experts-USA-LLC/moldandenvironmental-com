@@ -93,6 +93,12 @@
     if (!form || form.tagName !== 'FORM') return;
     if (form.getAttribute('role') === 'search' || form.querySelector('input[name="s"]')) return;
 
+    // A form with a REAL endpoint must be left alone. Without this the shim would keep hijacking
+    // the submit and hand the visitor a mailto, so the endpoint would exist and never be used -
+    // the site would look fixed while behaving exactly as before.
+    var action = form.getAttribute('action') || '';
+    if (action.indexOf('formsubmit.co') !== -1) return;
+
     e.preventDefault();
     e.stopPropagation();
 
