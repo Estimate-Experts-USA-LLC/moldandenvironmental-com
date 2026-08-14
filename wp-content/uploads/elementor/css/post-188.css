@@ -1,0 +1,104 @@
+/* ------------------------------------------------------------------------
+   STAND-IN LAYOUT STYLESHEET  —  /mold-removal-west-palm-beach/
+   Generated 2026-08-14 during the outage recovery.
+
+   The original Elementor per-page stylesheet for this page was lost with the
+   deactivated host and is not in the public web archive. This file restores
+   page structure only: container widths, spacing, and button styling.
+
+   It is NOT the original design. If a host backup is recovered, overwrite
+   this file with the real one and this stand-in disappears completely.
+   ------------------------------------------------------------------------ */
+
+/* Elementor containers normally get their width and padding from the missing
+   file. Give them sane values so content is not flush against the viewport. */
+.e-con,
+.elementor-section {
+  --container-max-width: 1140px;
+  --content-width: 1140px;
+  --padding-top: 48px;
+  --padding-bottom: 48px;
+  --padding-left: 20px;
+  --padding-right: 20px;
+  width: 100%;
+}
+
+.e-con-boxed > .e-con-inner,
+.elementor-section.elementor-section-boxed > .elementor-container {
+  max-width: 1140px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 20px;
+  padding-right: 20px;
+  width: 100%;
+}
+
+.e-con.e-flex,
+.e-con-inner.e-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Child containers should not re-pad; only top-level sections space the page. */
+.e-con.e-child {
+  --padding-top: 0px;
+  --padding-bottom: 0px;
+  --padding-left: 0px;
+  --padding-right: 0px;
+}
+
+/* The header is fixed. Without the page file the first section slides underneath
+   it, which is why the hero heading was cut in half. */
+.e-con.e-parent:first-of-type {
+  --padding-top: 96px;
+}
+
+/* Vertical rhythm — the missing file carried every widget's own margin. */
+.elementor-widget { margin-bottom: 18px; }
+.elementor-widget:last-child { margin-bottom: 0; }
+.elementor-widget-heading .elementor-heading-title { line-height: 1.25; margin: 0 0 8px; }
+.elementor-widget-text-editor { line-height: 1.7; }
+.elementor-widget-text-editor p { margin: 0 0 14px; }
+
+/* Buttons render as bare links without their styling. Match the site's CTA. */
+.elementor-button,
+.elementor-button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border-radius: 8px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  background-image: linear-gradient(90deg, #29b6e8 0%, #7ac943 100%);
+  color: #06263a;
+  transition: filter .15s ease, transform .15s ease;
+}
+.elementor-button:hover,
+.elementor-button-link:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.elementor-button .elementor-button-content-wrapper { display: inline-flex; align-items: center; gap: 8px; }
+
+/* Images should never overflow their container on a page with no width rules. */
+.elementor-widget-image img,
+.elementor-widget-theme-post-content img { max-width: 100%; height: auto; }
+
+/* An image whose file was lost with the host would otherwise draw a broken-file
+   icon and a stray border. Collapse it quietly instead. */
+img[src*="/wp-content/uploads/"]:not([src$=".svg"]) { background: transparent; }
+
+/* Lists inside recovered content lose their indent without the page file. */
+.elementor-widget-text-editor ul,
+.elementor-widget-text-editor ol { padding-left: 22px; margin: 0 0 14px; }
+.elementor-widget-text-editor li { margin-bottom: 6px; }
+
+@media (max-width: 1024px) {
+  .e-con, .elementor-section { --padding-top: 36px; --padding-bottom: 36px; }
+}
+@media (max-width: 767px) {
+  .e-con, .elementor-section { --padding-top: 28px; --padding-bottom: 28px; --padding-left: 16px; --padding-right: 16px; }
+  .e-con.e-parent:first-of-type { --padding-top: 84px; }
+  .e-con-boxed > .e-con-inner { padding-left: 16px; padding-right: 16px; }
+}

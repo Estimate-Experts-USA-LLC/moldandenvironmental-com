@@ -1,0 +1,153 @@
+@media (max-width: 1199px) {
+  .site-header .navbar-brand {
+    max-width: 100px;
+  }
+  .portfolio li {
+    float: left;
+    width: 300px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+ 
+  .getaQuoteBx {
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #fff;
+    font-size: 14px;
+    position: static;
+    max-width: 100%;
+    top: 50%;
+    right: 0;
+    transform: translateY(0);
+    padding: 15px;
+}
+}
+
+/*max width 991px*/
+@media (max-width: 991px) {
+  .site-header .navbar-brand {
+    max-width: 100px;
+    position: static;
+  }
+  .site-header {
+    padding: 0;
+    z-index: 3;
+  }
+  .blog-bx {
+    margin-bottom: 30px;
+  }
+  .main-slider .carousel-caption h5 {
+    font-size: 22px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #fff;
+    margin: 0 0 5px;
+  }
+  .main-slider .carousel-caption h2 {
+    font-size: 28px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #fff;
+    margin: 0 0 5px;
+  }
+  .main-slider .carousel-caption {
+    bottom: 6%;
+    max-width: 480px;
+    text-align: left;
+    color: #fff;
+  }
+  .service-bx {
+    position: relative;
+    margin-bottom: 30px;
+  }
+  .service-bx .img-thumb img {
+    width: 100%;
+  }
+  .img-style img {
+    width: 100%;
+  }
+}
+
+/*width 768px to 991px*/
+@media (min-width: 768px) and (max-width: 991px) {
+}
+
+/*max width 767px*/
+@media (max-width: 767px) {
+  .top-header {
+    display: none;
+  }
+  .fixed {
+    position: static;
+  }
+  .main-slider .carousel-caption h5 {
+    font-size: 14px;
+  }
+  .main-slider .carousel-caption h2 {
+    font-size: 16px;
+  }
+  .main-slider .carousel-caption p {
+    font-size: 12px;
+  }
+  .main-slider .carousel-caption .btn-banner {
+    color: #000000;
+    background-color: #a9d028;
+    border-color: #a9d028;
+    padding: 6px 18px;
+    font-weight: 400;
+    border-radius: 5px;
+    margin-top: 0;
+    display: inline-block;
+    font-size: 12px;
+  }
+  .feature-list {
+    display: none;
+  }
+  .portfolio li {
+    width: 100%;
+  }
+  .inner-banner {
+    padding: 40px 0;
+  }
+  .inner-banner h1 {
+    color: #000;
+    position: relative;
+    font-size: 1.4rem;
+    font-weight: 600;
+    z-index: 1;
+  }
+}
+
+/*width 576px to 767px*/
+@media (min-width: 576px) and (max-width: 767px) {
+}
+
+/*max with 575px*/
+@media (max-width: 575px) {
+  .main-slider .carousel-caption {
+    bottom: 0;
+  }
+  .main-slider .carousel-caption p {
+    font-size: 12px;
+  }
+  .main-slider .carousel-caption h5 {
+    font-size: 14px;
+  }
+  .main-slider .carousel-caption h2 {
+    font-size: 14px;
+  }
+  .main-slider .carousel-caption {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .main-slider .carousel-caption .btn-banner {
+    display: none;
+  }
+  .help-wrap .help-bx h4 {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 15px;
+    line-height: 36px;
+  }
+}
