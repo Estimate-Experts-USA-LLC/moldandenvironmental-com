@@ -1,6 +1,4 @@
-# TEMPORARY - staging only.
-# This deployment is not the public site yet. Blocked so the github.io preview cannot compete
-# with moldandenvironmental.com for its own content.
-# REMOVE THIS FILE (and add the CNAME) when the domain is pointed here.
 User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://moldandenvironmental.com/sitemap.xml
