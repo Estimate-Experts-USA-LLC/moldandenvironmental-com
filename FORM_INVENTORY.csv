@@ -1,0 +1,60 @@
+URL,form_present,form_type,current_action,current_backend,target_backend,requires_migration,tested,production_verified
+/,YES,enquiry (elementor-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/about/,YES,enquiry (elementor-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/air-quality-testing/,YES,enquiry (elementor-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/blog/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/category/mold/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/category/uncategorized/,NO,-,-,-,-,NO,NO,NO
+/cleaning-sanitation-of-structure/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/cleaning-sanitation-of-structure/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/cleaning-sanitation-of-structure/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/contact-us-today/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/contact-us-today/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/contact/,NO,-,-,-,-,NO,NO,NO
+/containment-in-affected-areas/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/containment-in-affected-areas/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/containment-in-affected-areas/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/credentials/,NO,-,-,-,-,NO,NO,NO
+/deodorization/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/deodorization/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/deodorization/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/do-i-have-toxic-mold-in-my-home/,NO,-,-,-,-,NO,NO,NO
+/do-you-know-the-effects-mold-can-have-on-your-family-health/,NO,-,-,-,-,NO,NO,NO
+/faqs-about-mold-and-mildews/,YES,enquiry (comment-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/faqs-about-mold-and-mildews/,YES,search (wp-block-search__button-outs),/,client/none,NONE - must not migrate,NO,NO,NO
+/faqs-about-mold-and-mildews/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/faqs/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/get-an-quote/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/get-an-quote/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/humidity-and-mold-growth/,YES,enquiry (comment-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/humidity-and-mold-growth/,YES,search (wp-block-search__button-outs),/,client/none,NONE - must not migrate,NO,NO,NO
+/humidity-and-mold-growth/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/indoor-air-quality-testing/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/indoor-air-quality-testing/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/indoor-air-quality-testing/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/is-mold-aspergillus-dangerous/,YES,enquiry (comment-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/is-mold-aspergillus-dangerous/,YES,search (wp-block-search__button-outs),/,client/none,NONE - must not migrate,NO,NO,NO
+/is-mold-aspergillus-dangerous/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/mold-grow-under-vinyl-plank-flooring/,YES,enquiry (comment-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/mold-grow-under-vinyl-plank-flooring/,YES,search (wp-block-search__button-outs),/,client/none,NONE - must not migrate,NO,NO,NO
+/mold-grow-under-vinyl-plank-flooring/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/mold-inspection-and-testing/,YES,enquiry (elementor-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/mold-inspection-yachts/,NO,-,-,-,-,NO,NO,NO
+/mold-remediation-in-fort-lauderdale/,YES,enquiry (elementor-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/mold-remediation-vero-beach-fl/,YES,enquiry (elementor-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/mold-removal-and-remediation/,YES,enquiry (elementor-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/mold-removal-in-fort-pierce/,YES,enquiry (elementor-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/mold-removal-port-saint-lucie/,YES,enquiry (elementor-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/mold-removal-vs-remediation/,YES,enquiry (comment-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/mold-removal-vs-remediation/,YES,search (wp-block-search__button-outs),/,client/none,NONE - must not migrate,NO,NO,NO
+/mold-removal-vs-remediation/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/mold-removal-west-palm-beach/,YES,enquiry (elementor-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/newsletter/,YES,enquiry (),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/newsletter/,YES,enquiry (wpcf7-form init),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/our-credentials/,NO,-,-,-,-,NO,NO,NO
+/our-reviews/,NO,-,-,-,-,NO,NO,NO
+/privacy-policy/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/terms-of-services/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
+/types-of-mold/,YES,enquiry (comment-form),https://formsubmit.co/moldandenvironmental@gmail.com,formsubmit.co (UNACTIVATED - discards),mold-leads-api /api/lead,YES,NO,NO
+/types-of-mold/,YES,search (wp-block-search__button-outs),/,client/none,NONE - must not migrate,NO,NO,NO
+/types-of-mold/,YES,search (searchform),/,client/none,NONE - must not migrate,NO,NO,NO
