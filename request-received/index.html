@@ -23,7 +23,6 @@
   .contact { margin:28px 0 0; padding-top:20px; border-top:1px solid var(--line); }
   a { color:var(--accent); font-weight:700; word-break:break-word; }
   .muted { font-size:14px; color:#4a5c53; }
-  .err { display:none; border-left-color:#b3261e; background:#fdecea; }
 </style>
 </head>
 <body>
@@ -36,11 +35,6 @@
     <p class="ref" id="refline" hidden>Your reference: <strong id="ref"></strong></p>
   </div>
 
-  <div class="card err" id="err">
-    <h1>We could not send your request.</h1>
-    <p>Nothing was submitted. Please call or email us directly and we will help straight away.</p>
-  </div>
-
   <div class="contact">
     <p><strong>Call:</strong> <a href="tel:+17547038317">(754)&nbsp;703-8317</a></p>
     <p><strong>Email:</strong> <a href="mailto:moldandenvironmental@gmail.com">moldandenvironmental@gmail.com</a></p>
@@ -49,15 +43,14 @@
   </div>
 </main>
 <script>
-  // The API 303s here with ?ref=<reference> on success, or ?status=error on failure.
-  // Only the reference is ever passed - never a name, email, phone or address.
+  // H9: the API only ever 303s here on SUCCESS, with ?ref=<reference>. A failed
+  // submission goes to /request-received/error/ instead -- a separate static
+  // page with no script dependency, so it is correct by default for a no-JS
+  // visitor. Do not reintroduce a ?status=error branch on this page: that was
+  // the original defect (see src/shared/redirect.mjs in mold-leads-api).
+  // Only the reference is ever passed here - never a name, email, phone or address.
   (function () {
     var p = new URLSearchParams(location.search);
-    if (p.get('status') === 'error') {
-      document.getElementById('ok').style.display = 'none';
-      document.getElementById('err').style.display = 'block';
-      return;
-    }
     var ref = (p.get('ref') || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 64); // no HTML can enter
     if (ref) {
       document.getElementById('ref').textContent = ref;

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>We could not send your request | Mold and Environmental of Central Florida</title>
+<!--
+  H9 fix, paired with mold-leads-api/src/shared/redirect.mjs.
+
+  This page exists because the original design put the error state behind a
+  query string (?status=error) on request-received/index.html, read only by a
+  <script> block. A visitor with no JavaScript -- exactly who the API's 303
+  no-JS path exists for -- never ran that script, so a failed submission
+  rendered the SUCCESS card by default. Same shape as the incident this whole
+  project responds to: told "received" while nothing was delivered.
+
+  This page has NO script dependency. Its default, unconditional markup IS the
+  failure message. Correct with JavaScript on, off, or blocked -- nothing to
+  branch on, nothing that can silently default to the wrong state.
+-->
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://moldandenvironmental.com/request-received/error/">
+<style>
+  :root { --ink:#12321f; --body:#243b30; --line:#cfd8d3; --bg:#fdecea; --accent:#b3261e; }
+  *,*::before,*::after { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         color:var(--body); line-height:1.6; background:#fff; }
+  .wrap { max-width:640px; margin:0 auto; padding:48px 20px 64px; }
+  h1 { color:var(--ink); font-size:clamp(24px,5vw,32px); line-height:1.25; margin:0 0 16px; }
+  .card { border:1px solid var(--line); border-left:5px solid var(--accent);
+          border-radius:8px; background:var(--bg); padding:24px; }
+  .contact { margin:28px 0 0; padding-top:20px; border-top:1px solid var(--line); }
+  a { color:#1e7b45; font-weight:700; word-break:break-word; }
+  .muted { font-size:14px; color:#4a5c53; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="card">
+    <h1>We could not send your request.</h1>
+    <p>Nothing was submitted. Please call or email us directly and we will help straight away.</p>
+  </div>
+
+  <div class="contact">
+    <p><strong>Call:</strong> <a href="tel:+17547038317">(754)&nbsp;703-8317</a></p>
+    <p><strong>Email:</strong> <a href="mailto:moldandenvironmental@gmail.com">moldandenvironmental@gmail.com</a></p>
+    <p class="muted">Mold and Environmental of Central Florida &middot;
+      Florida Mold Assessor MRSA3298 &middot; Florida Mold Remediator MRSR3880</p>
+  </div>
+</main>
+</body>
+</html>
