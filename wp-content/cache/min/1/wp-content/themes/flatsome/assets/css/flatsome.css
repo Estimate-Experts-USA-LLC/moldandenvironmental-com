@@ -1,0 +1,188 @@
+/* Flatsome layout primitives — replacement.
+   The original theme stylesheet was never captured by the WordPress static
+   export: this path has returned 404 since the site launched 2026-08-14, so
+   every header, nav and footer on 17 pages rendered as unstyled bullet lists.
+   Elementor's own CSS loads fine and styles page CONTENT, so this file
+   deliberately covers only the theme chrome Elementor does not provide, and
+   is scoped to #header / #footer / .nav so it cannot fight Elementor. */
+
+*,*::before,*::after{box-sizing:border-box}
+img{max-width:100%;height:auto}
+body{margin:0;font-family:Poppins,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+     line-height:1.6;color:#333;background:#fff;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.screen-reader-text,.skip-link{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---- grid ---- */
+.container{max-width:1140px;margin:0 auto;padding:0 20px;width:100%}
+.flex-row{display:flex;align-items:center;flex-wrap:nowrap;width:100%}
+.flex-col{flex:0 0 auto;min-width:0}
+.flex-left{margin-right:auto}.flex-right{margin-left:auto}
+.flex-center{margin-left:auto;margin-right:auto}
+.flex-grow{flex:1 1 0;min-width:0}
+
+/* ---- RESPONSIVE HELPERS — without these BOTH navs render at once,
+        which is why the contact details and logo appeared twice ---- */
+.show-for-medium{display:none!important}
+@media(max-width:849px){
+  .hide-for-medium{display:none!important}
+  .show-for-medium{display:block!important}
+}
+
+/* ---- header ---- */
+#header{position:relative;z-index:30}
+.header-wrapper{background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+#top-bar,.header-top{background:#1f1f1f;color:#fff;min-height:30px;font-size:13px}
+#top-bar a,.header-top a{color:#fff}
+#top-bar a:hover{opacity:.75}
+.header-main{background:#fff}
+.header-inner{min-height:90px}
+.top_contact_details a{margin-right:16px;white-space:nowrap}
+
+/* logo — the inline custom-css sets #logo{width:65px}, but with no base
+   stylesheet the 400px source image ignored it and overlapped the nav. */
+#logo{flex:0 0 auto;display:flex;align-items:center;padding:8px 0;margin-right:24px}
+#logo a{display:block;line-height:0}
+#logo img{display:block;width:auto;max-height:88px;object-fit:contain}
+@media(max-width:849px){#logo img{max-height:60px}}
+
+/* ---- nav ---- */
+ul.nav{display:flex;align-items:center;list-style:none;margin:0;padding:0;flex-wrap:wrap}
+ul.nav>li{position:relative;list-style:none}
+ul.nav>li>a{display:flex;align-items:center;padding:10px 14px;font-weight:500;
+            font-size:15px;line-height:1.3;transition:color .15s}
+.header-main ul.nav>li>a{color:#222}
+.header-main ul.nav>li>a:hover,.header-main ul.nav>li.active>a{color:#aad12a}
+.nav-divided>li+li{border-left:1px solid rgba(255,255,255,.15)}
+.header-main .nav-divided>li+li{border-left-color:rgba(0,0,0,.08)}
+.nav-small>li>a{font-size:13px;padding:6px 10px}
+
+/* dropdowns must be hidden until hover — otherwise every submenu renders
+   inline, which is the stacked "Mold Removal ..." list in the screenshot */
+.nav-dropdown{display:block;position:absolute;top:100%;left:0;min-width:230px;
+  background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.14);border:1px solid #eee;
+  padding:8px 0;margin:0;list-style:none;z-index:40;
+  opacity:0;visibility:hidden;transform:translateY(6px);
+  transition:opacity .15s,transform .15s,visibility .15s}
+li:hover>.nav-dropdown,li:focus-within>.nav-dropdown{opacity:1;visibility:visible;transform:none}
+.nav-dropdown li{list-style:none}
+.nav-dropdown li>a{display:block;padding:9px 18px;font-size:14px;color:#333;white-space:nowrap}
+.nav-dropdown li>a:hover{background:#f5f7ef;color:#7d9c1f}
+
+.social-icons{display:flex;align-items:center;gap:10px}
+.social-icons a{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:50%}
+.social-icons a:hover{background:rgba(255,255,255,.15)}
+
+/* ---- buttons ---- */
+.button,.header .button{display:inline-flex;align-items:center;justify-content:center;
+  padding:11px 22px;border-radius:4px;font-weight:600;font-size:14px;
+  background:#aad12a;color:#1f1f1f;border:2px solid #aad12a;transition:.15s;line-height:1.2}
+.button:hover{background:#96ba22;border-color:#96ba22}
+.button.is-outline{background:transparent;color:#aad12a}
+.button.is-outline:hover{background:#aad12a;color:#1f1f1f}
+
+/* ---- footer ---- */
+#footer{background:#1f1f1f;color:#cfcfcf;margin-top:40px}
+#footer a{color:#aad12a}
+#footer a:hover{text-decoration:underline}
+#footer .row{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;
+  max-width:1140px;margin:0 auto;padding:48px 20px}
+@media(max-width:849px){#footer .row{grid-template-columns:1fr;gap:26px;padding:32px 20px}}
+#footer .col{min-width:0}
+#footer .widget-title{display:block;color:#fff;font-weight:600;font-size:16px;margin-bottom:12px}
+#footer .is-divider{display:block;height:2px;width:44px;background:#aad12a;margin:10px 0 14px}
+.absolute-footer{background:#151515;text-align:center;padding:16px 20px;font-size:13px}
+
+/* ---- misc chrome ---- */
+#main,#wrapper{width:100%}
+.dark,.nav-dark{color:#fff}
+.is-divider{height:2px;background:rgba(0,0,0,.1);margin:14px 0;border:0}
+
+/* ---- fixes verified against the rendered page, not assumed ---- */
+
+/* Magnific Popup's hide class lived in the missing stylesheet, so the
+   off-canvas mobile menu (#main-menu) rendered inline in the page flow --
+   that was the large empty band and the stray vertical menu list. */
+.mfp-hide{display:none!important}
+#main-menu,.mobile-sidebar{display:none}
+
+/* the header carries BOTH a light and a dark logo; with no theme CSS both
+   painted, stacking one under the other */
+#logo .header-logo-dark,#logo img.header-logo-dark{display:none!important}
+#logo a>img~img{display:none!important}
+#logo{max-width:190px}
+#logo a img{max-height:80px!important;width:auto!important;height:auto}
+@media(max-width:849px){#logo a img{max-height:56px!important}}
+
+/* header must span the viewport; without the theme it shrank to content */
+#header,.header-wrapper,.header-main,.header-top,.header-bottom,#wrapper,#main{width:100%}
+.header-main .flex-row,.header-top .flex-row{width:100%}
+
+/* mobile-only nav duplicates stay out of the desktop flow */
+@media(min-width:850px){ul.nav.mobile-nav{display:none!important}}
+
+/* main nav sits beside the logo, not under it */
+.header-nav-main{flex-wrap:nowrap}
+.header-nav-main>li>a{white-space:nowrap}
+
+/* Measured on the rendered page, not assumed:
+   - computed max-height on the logo img resolved to 160px, overriding a
+     less specific rule, so the logo overflowed the header band
+   - the main nav computed to rgb(255,255,255): white links on the white
+     header. The nav was present and correctly positioned the whole time,
+     it was simply invisible. */
+#header #logo a img{max-height:76px!important;width:auto!important;height:auto!important}
+@media(max-width:849px){#header #logo a img{max-height:54px!important}}
+
+#header .header-main ul.nav>li>a,
+#header .header-main .header-nav-main>li>a,
+#header .header-main .nav>li>a{color:#1f1f1f!important}
+#header .header-main ul.nav>li>a:hover,
+#header .header-main ul.nav>li.active>a{color:#7d9c1f!important}
+#header .header-main .nav>li>a .icon-angle-down{opacity:.55}
+/* the dark top bar keeps light links */
+#header .header-top ul.nav>li>a,#top-bar ul.nav>li>a{color:#fff!important}
+#header .header-main .button,#header .header-main .button span{color:#1f1f1f!important}
+
+/* ---- banners / heroes ----
+   .fill computed to position:static because it was defined only in the missing
+   stylesheet, so every .banner-bg collapsed to height 0 and hero content fell
+   to the bottom of an 800px empty colour band. */
+.fill{position:absolute;top:0;left:0;right:0;bottom:0}
+.bg,.bg-fill{background-size:cover;background-position:center center;background-repeat:no-repeat}
+.banner{position:relative;overflow:hidden;display:flex;align-items:center}
+.banner-inner{position:relative;width:100%;display:flex;align-items:center}
+.banner-layers{position:relative;z-index:2;width:100%}
+.banner .text-box{position:relative;left:auto;top:auto;transform:none;margin:0}
+.banner .text-box .text-inner{padding:0}
+.banner-layers>.fill{z-index:1}
+
+/* section / row primitives used outside Elementor */
+.section{position:relative;padding:40px 0}
+.section-content{position:relative;z-index:2}
+.row{display:flex;flex-wrap:wrap;margin:0 -15px;width:auto}
+.row>.col{padding:0 15px;flex:1 1 0;min-width:0}
+.row.large-columns-4>.col{flex:0 0 25%;max-width:25%}
+.row.large-columns-3>.col{flex:0 0 33.333%;max-width:33.333%}
+.row.large-columns-2>.col{flex:0 0 50%;max-width:50%}
+@media(max-width:849px){.row>.col,.row.large-columns-4>.col,.row.large-columns-3>.col,.row.large-columns-2>.col{flex:0 0 100%;max-width:100%}}
+.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}
+
+/* .banner-inner must FILL the banner and centre its layers. Flatsome's own
+   y80/x25 position helpers also lived in the missing file, so hero copy fell
+   to the bottom of the band instead of sitting in it. And a hero with no
+   background image should not be 800px of flat colour. */
+.banner{max-height:440px}
+.banner .banner-inner,.banner .banner-inner.fill{
+  position:absolute!important;top:0;left:0;right:0;bottom:0;
+  display:flex!important;align-items:center!important}
+.banner .banner-layers{width:100%;display:block}
+.banner .text-box{position:relative!important;top:auto!important;left:auto!important;
+  right:auto!important;bottom:auto!important;transform:none!important;
+  width:auto!important;max-width:640px}
+.banner .text-box .text-inner{text-align:left}
+.banner h1,.banner h2{margin:0 0 18px}
+
+/* no page should scroll sideways */
+html,body{max-width:100%;overflow-x:hidden}
+.container,.row{max-width:100%}
