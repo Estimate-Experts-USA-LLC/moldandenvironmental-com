@@ -37,3 +37,25 @@ jobs:
           cp /tmp/idx.bak index.html
           node tools/public-claims-guard.mjs
           echo "null control OK: guard fails on injected claim, passes when restored"
+      - name: Audit asset references (no 404s, incl. srcset and query strings)
+        run: node tools/asset-guard.mjs
+      - name: Prove the asset guard can go red
+        run: |
+          set -e
+          cp about/index.html /tmp/ab.bak
+          python3 - <<'PY'
+          import io,re
+          p='about/index.html'; s=io.open(p,encoding='utf-8',errors='replace').read()
+          m=re.search(r'srcset="([^"]+)"',s); assert m
+          s=s[:m.start(1)]+m.group(1)+', /wp-content/uploads/2099/01/missing-768x512.jpg 768w'+s[m.end(1):]
+          io.open(p,'w',encoding='utf-8',newline='').write(s)
+          assert 'missing-768x512' in io.open(p,encoding='utf-8',errors='replace').read()
+          PY
+          if node tools/asset-guard.mjs > /dev/null 2>&1; then
+            cp /tmp/ab.bak about/index.html
+            echo "::error::NULL CONTROL FAILED - asset guard passed a missing srcset candidate"
+            exit 1
+          fi
+          cp /tmp/ab.bak about/index.html
+          node tools/asset-guard.mjs
+          echo "null control OK: asset guard fails on a missing srcset candidate, passes when restored"
