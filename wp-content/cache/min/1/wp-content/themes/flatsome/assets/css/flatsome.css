@@ -185,4 +185,8 @@ li:hover>.nav-dropdown,li:focus-within>.nav-dropdown{opacity:1;visibility:visibl
 
 /* no page should scroll sideways */
 html,body{max-width:100%;overflow-x:hidden}
-.container,.row{max-width:100%}
+/* NOTE: do NOT add .container here -- an earlier version did, and because it
+   has the same specificity as .container{max-width:1140px} but came later, it
+   silently widened every container to 100% and pushed hero copy flush against
+   the viewport edge. Only .row is safe to clamp. */
+.row{max-width:100%}
