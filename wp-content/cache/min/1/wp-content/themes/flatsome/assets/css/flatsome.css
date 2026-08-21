@@ -190,3 +190,26 @@ html,body{max-width:100%;overflow-x:hidden}
    silently widened every container to 100% and pushed hero copy flush against
    the viewport edge. Only .row is safe to clamp. */
 .row{max-width:100%}
+
+/* ---- REVIEW 2A regression fix ----
+   Blog/archive pages carry page-level inline CSS that paints .header-main dark
+   (rgb(25,25,25)). My earlier rule forced nav links to #1f1f1f !important, so
+   on those pages the links were DARK ON DARK -- the same invisibility defect I
+   had just fixed on the light header, inverted, and introduced by the fix.
+   Pinning the header background makes the light-header/dark-text pairing hold
+   on every page instead of depending on per-page inline CSS. */
+#header .header-main,#header .header-main .header-inner{background:#fff!important}
+#header .header-main .nav>li>a,#header .header-main .nav>li>a *{color:#1f1f1f!important}
+#header .header-main .nav>li>a:hover,#header .header-main .nav>li.active>a{color:#7d9c1f!important}
+
+/* blog and archive templates are not Elementor and had no container gutter,
+   so headings and body copy sat flush against the viewport edge */
+#content,.page-wrapper,.blog-wrapper,.archive-page-header{max-width:1180px;margin-left:auto;margin-right:auto}
+#content,.page-wrapper{padding-left:20px;padding-right:20px}
+@media(max-width:849px){#content,.page-wrapper{padding-left:16px;padding-right:16px}}
+.entry-content,.entry-header{max-width:100%}
+.entry-title{margin:0 0 12px;line-height:1.2}
+.entry-content p{margin:0 0 16px}
+#content .row{margin-left:0;margin-right:0}
+#content .row>.col{padding-left:0;padding-right:24px}
+@media(max-width:849px){#content .row>.col{padding-right:0}}
