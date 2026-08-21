@@ -1,3 +1,4 @@
 URL,DESKTOP_SCREENSHOT,TABLET_SCREENSHOT,MOBILE_SCREENSHOT,HIERARCHY,SPACING,TYPOGRAPHY,COLOR,NAV,CTA,IMAGERY,CONTENT_DENSITY,VISUAL_DEFECTS,CORRECTED,FINAL_VISUAL_PASS
 /,YES 1440,YES 768,YES 390,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"4 found: ghost button invisible on dark hero; 3 blog-graphic images used as service/editorial photos",YES,YES
 /about/,YES 1440,YES 768,YES 390,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"3 found: EXPIRED 2024 licence document published; hero image 499px stretched to full-bleed and muddy; body link rendered default browser blue",YES,YES
+/mold-inspection-and-testing/,YES 1440,YES 768,YES 390,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"none new; rebuilt from legacy article layout",YES,YES
