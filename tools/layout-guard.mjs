@@ -133,6 +133,30 @@ const PROBE = () => {
     issues.push(`EMPTY_BAND <${el.tagName.toLowerCase()} class="${el.className}">`);
   }
 
+  // 6. contact details must not break mid-token on a desktop layout.
+  //    The footer email is 265px on one line in a 281px column -- it fits, but by
+  //    6px, and before the grid was rebalanced it rendered as
+  //    "moldandenvironmental@gmail.co / m". A phone number or address split across
+  //    two lines is a commercial defect, not a cosmetic one. On phones the
+  //    overflow-wrap safety net is allowed to do its job, so this is desktop-only.
+  //
+  //    Measured with Range client rects, NOT box height. The first version of this
+  //    check compared height against line-height and flagged every .me-btn on the
+  //    site: a button is 52px tall by design with a 26px line box, and its label
+  //    was never wrapped. A text run that wraps produces more than one client
+  //    rect; that is the actual question, and box height is not a proxy for it.
+  if (vw >= 900) {
+    for (const a of document.querySelectorAll('a[href^="mailto:"], a[href^="tel:"]')) {
+      const node = [...a.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim());
+      if (!node) continue;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      const lines = range.getClientRects().length;
+      if (lines > 1)
+        issues.push(`CONTACT_WRAPS "${a.textContent.trim().slice(0, 34)}" across ${lines} lines`);
+    }
+  }
+
   // 6. thumb-sized tap targets on phones
   if (vw < 500) {
     for (const a of document.querySelectorAll("main a.me-btn, main a.me-textlink")) {

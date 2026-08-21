@@ -7,7 +7,10 @@
   "scripts": {
     "guard:claims": "node tools/public-claims-guard.mjs",
     "guard:assets": "node tools/asset-guard.mjs",
-    "guard:layout": "node tools/layout-guard.mjs"
+    "guard:layout": "node tools/layout-guard.mjs",
+    "guard:cssver": "node tools/css-version.mjs",
+    "guard:sitemap": "node tools/sitemap-guard.mjs",
+    "stamp:cssver": "node tools/css-version.mjs --write"
   },
   "devDependencies": { "playwright": "1.47.2" }
 }

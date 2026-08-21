@@ -58,6 +58,13 @@ const MUTATIONS = [
     expect: "RAIL_SPREAD",
   },
   {
+    name: "footer contact column narrows until the email breaks mid-token",
+    file: CHROME,
+    find: "@media(min-width:760px){.me-footer__grid{grid-template-columns:1.4fr 1fr 1fr 1.3fr}}",
+    replace: "@media(min-width:760px){.me-footer__grid{grid-template-columns:1.5fr 1fr 1fr 0.6fr}}",
+    expect: "CONTACT_WRAPS",
+  },
+  {
     name: "text links drop below a thumb-sized tap target",
     file: HOME,
     find: ".me-textlink{display:inline-flex;align-items:center;min-height:44px}",

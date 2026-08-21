@@ -70,6 +70,36 @@ jobs:
           cp /tmp/idx2.bak index.html
           node tools/asset-guard.mjs
           echo "null control OK: asset guard fails on a missing srcset candidate, passes when restored"
+      # ---- sitemap / canonical / robots agreement ------------------------
+      # Three signals written in three places drift apart quietly. On first run
+      # this caught /category/mold/ listed in the sitemap while its own canonical
+      # pointed at /blog/ -- the sitemap nominating a URL the page disowns.
+      - name: Audit sitemap against canonical and robots tags
+        run: node tools/sitemap-guard.mjs
+      - name: Prove the sitemap guard can go red
+        run: node tools/sitemap-guard-null-control.mjs
+
+      # ---- cache busting -------------------------------------------------
+      # Pages linked the stylesheets as a constant "?v=1" while the CSS changed
+      # underneath them, so a browser holding the old file kept rendering the old
+      # defect. The version is now a content hash; this fails the build if any
+      # page points at a version of the CSS it was not built against.
+      - name: Audit stylesheet cache-busting versions
+        run: node tools/css-version.mjs
+      - name: Prove the version check can go red
+        run: |
+          set -e
+          cp assets/css/me-home.css /tmp/mh.bak
+          echo "/* null control */" >> assets/css/me-home.css
+          if node tools/css-version.mjs > /dev/null 2>&1; then
+            cp /tmp/mh.bak assets/css/me-home.css
+            echo "::error::NULL CONTROL FAILED - version check passed after the CSS changed"
+            exit 1
+          fi
+          cp /tmp/mh.bak assets/css/me-home.css
+          node tools/css-version.mjs > /dev/null
+          echo "null control OK: a CSS edit without a re-stamp fails, and passes once restored"
+
       # ---- layout: measured in a real browser -----------------------------
       # The two guards above read the HTML source. They cannot see what the
       # browser actually painted: which colour landed on which background,

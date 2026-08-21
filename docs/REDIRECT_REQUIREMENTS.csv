@@ -1,7 +1,7 @@
 OLD_URL,TARGET_URL,REASON,HISTORICAL_VALUE,CURRENT_MECHANISM,DESIRED_HTTP_STATUS
 /indoor-air-quality-testing/,/air-quality-testing/,Near-duplicate content competing for the same query,Indexed and in sitemap since launch,noindex + canonical + meta refresh + JS (NOT a redirect),301
 /contact/,/contact-us-today/,Duplicate URL for the contact page,Pre-existing stub,noindex + canonical + meta refresh + JS,301
-/credentials/,/our-credentials/,Duplicate URL for the licences page,Pre-existing stub,noindex + canonical + meta refresh + JS,301
+/credentials/,/our-credentials/,Duplicate URL for the licenses page,Pre-existing stub,noindex + canonical + meta refresh + JS,301
 /category/uncategorized/,/blog/,WordPress artifact taxonomy,Pre-existing stub,noindex + canonical + meta refresh + JS,301
 /do-i-have-toxic-mold-in-my-home/,/mold-inspection-and-testing/,Retired health-claim URL,Previously indexed,noindex + canonical + meta refresh + JS,301
 /do-you-know-the-effects-mold-can-have-on-your-family-health/,/mold-removal-and-remediation/,Retired health-claim URL,Previously indexed,noindex + canonical + meta refresh + JS,301
