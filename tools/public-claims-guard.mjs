@@ -7,9 +7,22 @@
    It judges RENDERED TEXT + metadata + image sources, because the credentials
    cleanup proved a badge image asserts a claim with no text to find, and that
    "DBPR certified" can hide split across a <span>. */
-import { readFileSync } from "node:fs";
-import { globSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
+
+/* Deliberately NOT fs.globSync: it was added in Node 22 and CI runs Node 20, so
+   the guard CRASHED in CI while passing locally on Node 24. A crashing guard
+   reports "failure", which reads exactly like a claims violation -- the worst
+   possible false alarm for this check. This walker works on every version. */
+function findIndexHtml(dir, base = dir, out = []) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === "node_modules" || e.name === ".git") continue;
+    const full = dir + "/" + e.name;
+    if (e.isDirectory()) findIndexHtml(full, base, out);
+    else if (e.name === "index.html") out.push(full.slice(base.length + 1));
+  }
+  return out;
+}
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const SITE = path.join(ROOT, "..");
@@ -77,7 +90,7 @@ export function auditFile(file, html) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith("public-claims-guard.mjs")) {
-  const files = globSync("**/index.html", { cwd: SITE }).filter((f) => !f.startsWith("node_modules"));
+  const files = findIndexHtml(SITE);
   let all = [];
   for (const f of files) all = all.concat(auditFile(f, readFileSync(path.join(SITE, f), "utf8")));
   if (all.length) {
