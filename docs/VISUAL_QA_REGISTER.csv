@@ -13,3 +13,21 @@ URL,DESKTOP_SCREENSHOT,TABLET_SCREENSHOT,MOBILE_SCREENSHOT,HIERARCHY,SPACING,TYP
 /mold-remediation-vero-beach-fl/,YES 1440,n/a,YES 390,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"unique local content; barrier island and seasonal-home context",YES,YES
 /mold-removal-west-palm-beach/,YES 1440,n/a,YES 390,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"unique local content; condo and multi-unit context",YES,YES
 /mold-remediation-in-fort-lauderdale/,YES 1440,n/a,YES 390,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"unique local content; marine crossover; removed Unlike other companies disparagement",YES,YES
+/privacy-policy/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Rewritten: named a third-party form processor that was REMOVED, so the page described a data flow that no longer existed",YES,YES
+/terms-of-services/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Page said 'please read our terms and conditions' and then contained NO terms; scope, one-role-per-project, assessment limits and quote basis written",YES,YES
+/faqs/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Accordion opened and verified by click, not assumed from markup",YES,YES
+/get-an-quote/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Text+text split was vertically centred, putting the two column headings 29px out of step; me-split--top added",YES,YES
+/newsletter/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Sign-up removed rather than left collecting an address nothing manages",YES,YES
+/containment-in-affected-areas/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Step numerals were 1-4 while the homepage used 01-04; zero-padded",YES,YES
+/cleaning-sanitation-of-structure/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Copy carried over verbatim; markup only",YES,YES
+/deodorization/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Copy carried over verbatim; markup only",YES,YES
+/blog/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"New knowledge-center index",YES,YES
+/category/mold/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Canonical to /blog/; REMOVED from sitemap - it was nominated there while disowning itself",YES,YES
+/types-of-mold/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Seven genera each asserted 'can cause allergies asthma and other respiratory health issues' as fact; now attributed to EPA/CDC",YES,YES
+/humidity-and-mold-growth/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Fear framing removed: 'succumb to the damage', 'save yourself and your loved ones', 'too late'",YES,YES
+/mold-removal-vs-remediation/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"'Unfortunately it becomes too late once you can see the mold' removed",YES,YES
+/mold-grow-under-vinyl-plank-flooring/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"'Notorious home wrecker with the power to destroy our health' removed",YES,YES
+/is-mold-aspergillus-dangerous/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Repeated memory loss and nosebleed claims the CDC says are NOT established; page now states they are unsupported and says the previous version should not have carried them",YES,YES
+/faqs-about-mold-and-mildews/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Claims guard caught my own denial wording ('a report claiming to certify it'); reworded rather than allowlisted",YES,YES
+/request-received/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Dead 'Your reference:' label showed an empty value; dropped. Still noindex, still no form",YES,YES
+/request-received/error/,YES 1440,n/a,YES 375,PASS,PASS,PASS,PASS,PASS,PASS,PASS,PASS,"Kept as a SEPARATE URL - reading status from a query string in script only meant every JS-off failure showed the success page",YES,YES
