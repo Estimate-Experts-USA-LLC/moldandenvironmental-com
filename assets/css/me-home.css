@@ -194,3 +194,18 @@
   .me-card__body{padding:24px 22px 26px}
   .me-card__body p{font-size:14.5px;line-height:1.6}
 }
+
+/* ---- FIX (seen on About): inline body links rendered default browser blue,
+   breaking the accent system. Scope to prose so buttons are unaffected. ---- */
+.me-p a:not(.me-btn):not(.me-textlink),
+.me-lead a:not(.me-btn):not(.me-textlink),
+.me-card__body a:not(.me-btn):not(.me-textlink){
+  color:var(--green-dark);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.me-p a:not(.me-btn):hover{color:var(--green)}
+.me-section--dark .me-p a:not(.me-btn),.me-section--dark .me-lead a:not(.me-btn){color:#9ec79a}
+
+/* ---- FIX (seen on About): hero was taller than its content needed ------- */
+.me-hero__inner{padding:clamp(56px,7vw,88px) 0 clamp(48px,6vw,72px)}
+/* lift the photograph so the hero is not effectively a flat dark rectangle */
+.me-hero__media img{opacity:.38}
+.me-hero__scrim{background:linear-gradient(90deg,rgba(16,22,19,.95) 0%,rgba(16,22,19,.82) 48%,rgba(16,22,19,.46) 100%)}
