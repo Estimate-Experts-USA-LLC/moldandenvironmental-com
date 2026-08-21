@@ -245,3 +245,119 @@ h3.elementor-heading-title, .elementor-widget-heading h3 { font-size: clamp(19px
 /* Muted text must still clear AA. */
 .elementor-widget-text-editor .has-text-color,
 small, .muted, .is-small { color: var(--me-muted); }
+
+/* ===========================================================================
+   PREMIUM PASS
+   The site was correct but flat: washed-out grey body copy on near-black,
+   gradient buttons in two widths repeated twice per screen, a nav wrapping to
+   two lines, and large dead vertical gaps. Correct is not the same as premium.
+   These are visual decisions, verified by looking at the page.
+   =========================================================================== */
+
+/* ---- Dark surfaces: lift the body copy ----------------------------------
+   #999 on #202020 passes AA at 5.72:1 but reads as low-energy. Lifting to a
+   warmer light tone raises it to ~9:1 AND makes the page feel designed. */
+.elementor-widget-text-editor p,
+.elementor-widget-text-editor li,
+.elementor-widget-text-editor { color: #c9d2cd; }
+
+/* Section headings on dark get real presence */
+.elementor-heading-title { letter-spacing: -0.015em; }
+
+/* ---- Buttons: solid, one shape, one weight, no gradients ---------------- */
+.elementor-button,
+.elementor-button-link,
+a.elementor-button {
+  background-image: none !important;      /* kills the blue->green gradient */
+  background-color: var(--me-primary) !important;
+  color: #16240a !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  padding: 14px 26px !important;
+  font-size: 15px !important;
+  letter-spacing: .01em;
+  box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 6px 18px rgba(0,0,0,.22);
+  transition: transform .08s ease, background-color .15s ease, box-shadow .15s ease;
+}
+.elementor-button:hover, a.elementor-button:hover {
+  background-color: #b9e034 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.28);
+}
+.elementor-button:active, a.elementor-button:active { transform: translateY(0); }
+
+/* Secondary action (the phone button) reads as secondary, not a second primary */
+.elementor-widget-button + .elementor-widget-button .elementor-button,
+.elementor-element + .elementor-element > .elementor-widget-container > .elementor-button[href^="tel:"],
+a.elementor-button[href^="tel:"] {
+  background-color: transparent !important;
+  color: var(--me-primary) !important;
+  box-shadow: inset 0 0 0 2px var(--me-primary);
+}
+a.elementor-button[href^="tel:"]:hover {
+  background-color: rgba(170,209,42,.12) !important;
+  color: #cdea5f !important;
+}
+
+/* Put stacked CTAs side by side instead of two orphan blocks */
+@media (min-width: 620px) {
+  .elementor-widget-button { display: inline-block; margin-right: 12px; }
+}
+
+/* ---- Header: keep the nav on one line ----------------------------------- */
+@media (min-width: 1000px) {
+  .elementor-nav-menu--main .elementor-nav-menu { flex-wrap: nowrap !important; }
+  .elementor-nav-menu--main .elementor-item {
+    white-space: nowrap;
+    padding-left: 14px !important; padding-right: 14px !important;
+    font-size: 15px !important;
+  }
+}
+/* Active item: an underline reads better than a filled chip */
+.elementor-nav-menu .current-menu-item > .elementor-item,
+.elementor-nav-menu .elementor-item.elementor-item-active {
+  background: transparent !important;
+  box-shadow: inset 0 -2px 0 var(--me-primary);
+  color: #fff !important;
+}
+
+/* ---- Vertical rhythm: close the dead gaps ------------------------------- */
+.elementor-section.elementor-section-boxed > .elementor-container { align-items: center; }
+.elementor-widget:not(:last-child) { margin-bottom: 18px; }
+
+/* ---- Hairlines between major bands, so sections read as sections -------- */
+.elementor-top-section + .elementor-top-section { border-top: 1px solid rgba(255,255,255,.06); }
+
+/* ---- Links inside dark body copy --------------------------------------- */
+.elementor-widget-text-editor a { color: var(--me-primary); text-decoration: none; }
+.elementor-widget-text-editor a:hover { text-decoration: underline; }
+
+/* ---- Images get a little depth ------------------------------------------ */
+.elementor-widget-image img { border-radius: 12px; }
+
+/* ---- Header CTA must not wrap onto two lines or collide with the nav ---- */
+@media (min-width: 1000px) {
+  .elementor-location-header .elementor-button,
+  header .elementor-button {
+    white-space: nowrap;
+    padding: 12px 22px !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+  }
+  .elementor-nav-menu--main .elementor-item { padding-left: 12px !important; padding-right: 12px !important; }
+}
+
+/* ---- Stacked CTAs sit side by side, and match each other's height ------- */
+.elementor-widget-button { display: inline-block !important; vertical-align: top; }
+.elementor-widget-button + .elementor-widget-button { margin-left: 12px; }
+.elementor-widget-button .elementor-button { min-width: 190px; justify-content: center; }
+@media (max-width: 619px) {
+  .elementor-widget-button { display: block !important; margin-left: 0 !important; }
+  .elementor-widget-button + .elementor-widget-button { margin-top: 10px; }
+  .elementor-widget-button .elementor-button { width: 100%; }
+}
+
+/* ---- Close the dead band between the page title and the first section --- */
+.elementor-location-single > .elementor-section:first-child,
+.elementor-top-section:first-of-type { padding-top: 28px !important; }
+.elementor-top-section:first-of-type + .elementor-top-section { padding-top: 8px !important; }
