@@ -57,7 +57,11 @@
 .me-footer a{color:var(--on-dark-2);text-decoration:none}
 .me-footer a:hover{color:#fff;text-decoration:underline}
 .me-footer__grid{display:grid;gap:32px}
-@media(min-width:760px){.me-footer__grid{grid-template-columns:1.5fr 1fr 1fr 1.2fr}}
+@media(min-width:760px){.me-footer__grid{grid-template-columns:1.4fr 1fr 1fr 1.3fr}}
+/* contact column was 1.2fr = 259px at full width; the email address needs 265px
+   on one line (measured), so it wrapped one character from the end: "...gmail.co / m".
+   overflow-wrap:anywhere is the SAFETY NET for narrow phones, not the intended
+   rendering at desktop. */
 .me-footer h4{color:#fff;font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 14px;font-weight:650}
 .me-footer ul{list-style:none;margin:0;padding:0;display:grid;gap:9px;font-size:14.5px}
 .me-footer__brand p{font-size:14.5px;margin:0 0 10px;max-width:34ch}

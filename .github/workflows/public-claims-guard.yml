@@ -10,7 +10,7 @@ on:
 jobs:
   guard:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -59,3 +59,38 @@ jobs:
           cp /tmp/ab.bak about/index.html
           node tools/asset-guard.mjs
           echo "null control OK: asset guard fails on a missing srcset candidate, passes when restored"
+
+      # ---- layout: measured in a real browser -----------------------------
+      # The two guards above read the HTML source. They cannot see what the
+      # browser actually painted: which colour landed on which background,
+      # which element's min-content width forced a sideways scroll, whether the
+      # headings share a left rail. Four defects of exactly that kind shipped to
+      # production on 2026-08-14 and survived every static check until someone
+      # looked at the page. This step is that look, automated.
+      - name: Install Chromium for the layout guard
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      # Server, guard and null control share ONE step: a background process
+      # started in an earlier step is not guaranteed to still be running in a
+      # later one, and a guard that cannot reach the site would fail for the
+      # wrong reason -- or, worse, be "fixed" by making it tolerate that.
+      - name: Audit rendered layout, then prove the guard can go red
+        run: |
+          set -e
+          python3 -m http.server 8791 --bind 127.0.0.1 > /dev/null 2>&1 &
+          SERVER=$!
+          trap 'kill $SERVER 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            curl -fsS -o /dev/null http://127.0.0.1:8791/ && break
+            sleep 0.25
+          done
+          curl -fsS -o /dev/null http://127.0.0.1:8791/ || { echo "::error::static server never came up"; exit 1; }
+
+          node tools/layout-guard.mjs http://127.0.0.1:8791
+
+          # The null control re-runs the guard once per mutation. Across every
+          # page that would be ~350 page loads, so it is scoped to three pages
+          # that between them carry all the measured components: a dark CTA
+          # panel, dark-section steps, a prose column and the footer.
+          LAYOUT_GUARD_PAGES=/,/privacy-policy/,/containment-in-affected-areas/             node tools/layout-guard-null-control.mjs http://127.0.0.1:8791

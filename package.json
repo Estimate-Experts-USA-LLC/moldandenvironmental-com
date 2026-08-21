@@ -1,0 +1,13 @@
+{
+  "name": "moldandenvironmental-com",
+  "private": true,
+  "type": "module",
+  "description": "Static site for moldandenvironmental.com. Node is here only to run the guards in tools/.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "guard:claims": "node tools/public-claims-guard.mjs",
+    "guard:assets": "node tools/asset-guard.mjs",
+    "guard:layout": "node tools/layout-guard.mjs"
+  },
+  "devDependencies": { "playwright": "1.47.2" }
+}

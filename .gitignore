@@ -1,2 +1,10 @@
 .DS_Store
 Thumbs.db
+
+# Guard tooling only -- this repo is served verbatim by GitHub Pages, so anything
+# committed here becomes a public URL. node_modules must never be one of them.
+node_modules/
+
+# Playwright leftovers
+test-results/
+playwright-report/

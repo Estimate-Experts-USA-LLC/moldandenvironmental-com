@@ -90,7 +90,13 @@
 .me-hero__media img{width:100%;height:100%;object-fit:cover;opacity:.30}
 .me-hero__scrim{position:absolute;inset:0;
   background:linear-gradient(90deg,rgba(16,22,19,.96) 0%,rgba(16,22,19,.86) 46%,rgba(16,22,19,.55) 100%)}
-.me-hero__inner{position:relative;z-index:2;padding:clamp(64px,9vw,116px) 0 clamp(56px,7vw,92px)}
+/* padding-block, NOT the `padding: X 0 Y` shorthand that used to be here: the
+   shorthand was written to set the vertical padding, but its `0` also wiped the
+   24px horizontal padding .me-container provides. Measured on /privacy-policy/:
+   hero heading at x=164.5, every other heading on the page at x=188.5 -- the H1
+   hung 24px left of the whole page, and at phone widths the hero copy had no
+   inset from the screen edge at all. */
+.me-hero__inner{position:relative;z-index:2;padding-block:clamp(64px,9vw,116px) clamp(56px,7vw,92px)}
 .me-hero__copy{max-width:640px}
 .me-hero .me-display{color:#fff}
 .me-hero .me-lead{color:#c3cec7}
@@ -205,7 +211,84 @@
 .me-section--dark .me-p a:not(.me-btn),.me-section--dark .me-lead a:not(.me-btn){color:#9ec79a}
 
 /* ---- FIX (seen on About): hero was taller than its content needed ------- */
-.me-hero__inner{padding:clamp(56px,7vw,88px) 0 clamp(48px,6vw,72px)}
+.me-hero__inner{padding-block:clamp(56px,7vw,88px) clamp(48px,6vw,72px)}
 /* lift the photograph so the hero is not effectively a flat dark rectangle */
 .me-hero__media img{opacity:.38}
 .me-hero__scrim{background:linear-gradient(90deg,rgba(16,22,19,.95) 0%,rgba(16,22,19,.82) 48%,rgba(16,22,19,.46) 100%)}
+
+/* A narrow prose column that stays on the SAME left rail as every other section.
+   These sections were centred -- .me-container carries margin:0 auto, and an
+   inline max-width narrows the box without stopping it centring. Measured on
+   /privacy-policy/ at a 1489px viewport: full-width sections put their headings
+   at x=165, the narrow ones at x=305. So the left edge of the page jumped 140px
+   sideways every time you scrolled past one, and on the legal pages -- where the
+   narrow sections are the majority -- the hero looked like it belonged to a
+   different page. The narrow MEASURE was right; centring it was not. */
+:where(.me-container--prose) > :where(*){max-width:880px}
+/* :where() zeroes this rule's specificity so it acts as a FLOOR, not a override.
+   Written normally it beat .me-p's own 70ch measure and set the body copy to the
+   full 880px -- about 110 characters a line, measured. A container cap must not
+   overrule an element that already knows its own comfortable measure. */
+/* Capping the CHILDREN, not the container. First attempt narrowed the container
+   itself and set margin-left:0 -- but .me-container centres inside a FULL-WIDTH
+   section, so killing the auto margin pinned the column to the viewport edge
+   (measured: headings jumped from x=305 to x=32, spread 156px -- further out of
+   line than the defect it was meant to fix). The container has to stay on the
+   shared rail; only the measure should be narrow. */
+
+/* ---- light islands and dark sections ------------------------------------
+   Two families of bug, both the same mistake: a component that can sit on
+   either background, whose colour was only ever decided for one of them.
+
+   (a) .me-panel and .me-review are ALWAYS light islands (--paper / --green-soft).
+       Dropped into .me-section--dark they inherited the dark section's white body
+       text and white h3. Measured on /about/: the panel heading rendered 1.15:1
+       and the street address 1.03:1 -- the address was invisible on screen, on the
+       one panel that carries the phone number and address.
+
+   (b) .me-step / .me-reason / .me-faq already HAD dark-section variants -- but only
+       for their borders and numerals. The prose inside them kept --text-2, which is
+       a mid-grey meant for white. Measured on the homepage process steps: 3.17:1
+       against --ink, where 4.5 is required. --on-dark-2 on the same background
+       measures 8.88:1.
+
+   The rule these encode: a colour is only correct with respect to a known
+   background, so a component that travels between backgrounds must state one for
+   each. */
+.me-panel{color:var(--text)}
+.me-panel p{color:var(--text-2)}
+.me-panel li{color:var(--text-2)}
+.me-panel dd{color:var(--ink)}
+.me-section--dark .me-panel h2,
+.me-section--dark .me-panel h3,
+.me-section--dark .me-panel h4{color:var(--ink)}
+.me-section--dark .me-review blockquote{color:var(--text)}
+.me-section--dark .me-review cite{color:var(--text-2)}
+
+.me-section--dark .me-step p,
+.me-section--dark .me-reason p,
+.me-section--dark .me-faq details p{color:var(--on-dark-2)}
+.me-section--dark .me-faq,
+.me-section--dark .me-faq details{border-color:rgba(255,255,255,.16)}
+.me-section--dark .me-faq summary{color:#fff}
+
+/* ---- long unbreakable tokens ---------------------------------------------
+   The email address is a 30-character token with no break opportunity. Its
+   min-content width is ~319px, and a grid item will not shrink below the
+   min-content width of its contents -- so the panel column was forced to 373px
+   inside a 344px body, and EVERY page scrolled sideways on a phone (measured:
+   document scrollWidth 405 against a 360px viewport). The <h2> and buttons that
+   also measured 373px were consequences of the column, not causes.
+   min-width:0 lets the grid item shrink; overflow-wrap lets the address wrap. */
+.me-split > *,.me-grid > *{min-width:0}
+.me-panel dd,.me-panel dd a,.me-footer a{overflow-wrap:anywhere}
+
+/* ---- tap targets ---------------------------------------------------------
+   Text links measured 26-38px tall on a phone; 44px is the floor a thumb can
+   hit reliably. Padding, not font-size: the type is fine, the hit area was not. */
+.me-textlink{display:inline-flex;align-items:center;min-height:44px}
+
+/* text+text splits: centring is for image-beside-text; two prose columns of
+   unequal height should START together, or their headings sit visibly out of
+   step (29px on /get-an-quote/, measured). */
+.me-split--top{align-items:start}
