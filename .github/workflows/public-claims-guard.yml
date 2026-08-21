@@ -1,0 +1,39 @@
+# Fails the build if production-renderable content makes an unsupported
+# credential claim. Runs on every push/PR to main and daily, because the
+# claims can also change via a content edit nobody routes through review.
+name: public-claims-guard
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+  schedule: [{ cron: "17 6 * * *" }]
+  workflow_dispatch:
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Audit public credential claims
+        run: node tools/public-claims-guard.mjs
+      - name: Prove the guard can still go red
+        run: |
+          set -e
+          cp index.html /tmp/idx.bak
+          python3 - <<'PY'
+          p='index.html'
+          s=open(p,encoding='utf-8',errors='replace').read()
+          assert '</body>' in s
+          s=s.replace('</body>','<p>IICRC Certified Experts</p></body>',1)
+          open(p,'w',encoding='utf-8',newline='').write(s)
+          assert 'IICRC Certified Experts' in open(p,encoding='utf-8',errors='replace').read()
+          PY
+          if node tools/public-claims-guard.mjs > /dev/null 2>&1; then
+            cp /tmp/idx.bak index.html
+            echo "::error::NULL CONTROL FAILED - the guard passed on deliberately broken content"
+            exit 1
+          fi
+          cp /tmp/idx.bak index.html
+          node tools/public-claims-guard.mjs
+          echo "null control OK: guard fails on injected claim, passes when restored"
