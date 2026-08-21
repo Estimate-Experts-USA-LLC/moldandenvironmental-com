@@ -212,17 +212,17 @@ img { max-width: 100%; height: auto; }
    touching layout.
    =========================================================================== */
 
-/* 🔴 ACCESSIBILITY: Elementor body copy computed to rgb(153,153,153) --
-   #999 on white is 2.85:1, below the 4.5:1 WCAG AA minimum for normal text.
-   This was live on 13 pages. */
-.elementor-widget-text-editor,
-.elementor-widget-text-editor p,
-.elementor-widget-text-editor li,
-.elementor-widget-theme-post-content p,
-.elementor p:not([class]) {
-  color: var(--me-body);
-}
-.elementor-widget-text-editor a { color: var(--me-secondary-dark); }
+/* ⛔ REVERTED -- and this is why.
+   I forced body copy to a DARK colour to fix #999-on-white (2.85:1), and I
+   measured the result against WHITE. Several pages have DARK backgrounds. On
+   those, dark text on a dark background is the same unreadable defect I had
+   just fixed in the header, inflicted by its own fix. It shipped because my
+   audit measured contrast for HEADER NAV LINKS only, so 93 inspections passed
+   while body copy was unreadable.
+
+   A colour forced without knowing the background behind it is a bug on every
+   background you did not check. Contrast must be repaired per surface, not
+   globally. */
 
 /* One button shape and one weight across both systems. */
 .elementor-button,
@@ -237,9 +237,7 @@ button[type="submit"] {
 }
 
 /* Heading scale: keep both systems on the same fluid ramp. */
-.elementor-heading-title,
-.entry-title,
-h1, h2, h3 { font-family: var(--me-sans) !important; }
+.elementor-heading-title, .entry-title { font-family: var(--me-sans); }
 h1.elementor-heading-title, .elementor-widget-heading h1 { font-size: clamp(28px, 4.2vw, 46px) !important; }
 h2.elementor-heading-title, .elementor-widget-heading h2 { font-size: clamp(23px, 3vw, 34px) !important; }
 h3.elementor-heading-title, .elementor-widget-heading h3 { font-size: clamp(19px, 2.2vw, 25px) !important; }
