@@ -1,0 +1,249 @@
+/* ===========================================================================
+   MOLD & ENVIRONMENTAL — DESIGN SYSTEM
+   ---------------------------------------------------------------------------
+   The site is two markup systems: 17 legacy Flatsome pages and 13 Elementor
+   pages. They render correctly but look like two different companies -- six
+   font families, two button systems, two card styles, two focus behaviours.
+
+   This layer makes them ONE BRAND without a risky markup migration. It is
+   deliberately small and deliberately APPEARANCE-ONLY: it normalises type,
+   colour, buttons, cards, focus and rhythm. It does not move boxes, because
+   the layout is already proven at 390 / 768 / 1440 and re-laying it out would
+   put that at risk for cosmetic gain.
+
+   It also adds ZERO font requests. Instead of imposing one family the pages
+   would have to download, the stack prefers whichever geometric sans each page
+   ALREADY loads (Poppins on legacy, Jost/Inter on Elementor) and falls back to
+   the system UI font. They end up closely related without new network cost.
+
+   Loaded LAST so it wins on equal specificity.
+   =========================================================================== */
+
+:root {
+  /* Brand — measured from the live site, not invented.
+     #aad12a appears 446 times, #009ddc 187 times. */
+  --me-primary:        #aad12a;
+  --me-primary-dark:   #8fb31f;
+  --me-primary-ink:    #1f2d05;
+  --me-secondary:      #009ddc;
+  --me-secondary-dark: #0080b4;
+
+  --me-ink:            #16241c;
+  --me-body:           #33413a;
+  --me-muted:          #5d6b64;
+  --me-line:           #dfe4e1;
+  --me-surface:        #ffffff;
+  --me-surface-alt:    #f6f8f6;
+  --me-dark:           #1f1f1f;
+  --me-danger:         #b3261e;
+
+  /* Spacing scale */
+  --me-1: 4px;  --me-2: 8px;  --me-3: 12px; --me-4: 16px;
+  --me-5: 24px; --me-6: 32px; --me-7: 48px; --me-8: 64px;
+
+  --me-radius:    8px;
+  --me-radius-lg: 14px;
+  --me-shadow:    0 1px 2px rgba(16,36,28,.06), 0 6px 18px rgba(16,36,28,.07);
+  --me-shadow-lg: 0 8px 30px rgba(16,36,28,.12);
+
+  --me-content: 1140px;
+
+  /* No new font downloads: prefer what the page already has. */
+  --me-sans: Poppins, Jost, Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ---- Typography ---------------------------------------------------------- */
+body { font-family: var(--me-sans); color: var(--me-body); -webkit-font-smoothing: antialiased; }
+
+h1, h2, h3, h4, h5, h6,
+.elementor-heading-title,
+.entry-title {
+  font-family: var(--me-sans);
+  color: var(--me-ink);
+  letter-spacing: -0.01em;
+  text-wrap: balance;           /* avoids single-word last lines in headings */
+}
+h1, .entry-title { line-height: 1.15; }
+h2 { line-height: 1.2; }
+h3, h4 { line-height: 1.3; }
+
+/* Fluid type so one scale serves 390 -> 1440 without breakpoint juggling. */
+h1, .elementor-widget-heading h1.elementor-heading-title { font-size: clamp(28px, 4.2vw, 46px); }
+h2, .elementor-widget-heading h2.elementor-heading-title { font-size: clamp(23px, 3vw, 34px); }
+h3, .elementor-widget-heading h3.elementor-heading-title { font-size: clamp(19px, 2.2vw, 25px); }
+
+p, li { line-height: 1.65; }
+p { margin: 0 0 var(--me-4); }
+
+/* ---- Links --------------------------------------------------------------- */
+a { color: inherit; }
+main a:not(.button):not(.elementor-button):not(.me-btn) { text-underline-offset: 2px; }
+main a:not(.button):not(.elementor-button):not(.me-btn):hover { color: var(--me-primary-dark); }
+
+/* ---- Focus: one visible, consistent state everywhere (WCAG 2.2) ---------- */
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid var(--me-secondary);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+/* Never remove focus without replacing it. */
+a:focus:not(:focus-visible), button:focus:not(:focus-visible) { outline: none; }
+
+/* ---- Buttons: ONE system across Flatsome and Elementor ------------------- */
+.button,
+.elementor-button,
+.me-btn,
+input[type="submit"],
+button[type="submit"] {
+  font-family: var(--me-sans);
+  font-weight: 600;
+  letter-spacing: .01em;
+  border-radius: var(--me-radius);
+  transition: background-color .15s ease, border-color .15s ease, transform .06s ease;
+  /* WCAG 2.2 target size: never smaller than 44px tall */
+  min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.button:active, .elementor-button:active, .me-btn:active { transform: translateY(1px); }
+
+.button:not(.is-outline):not(.is-link),
+.elementor-button,
+.me-btn {
+  background-color: var(--me-primary);
+  border: 2px solid var(--me-primary);
+  color: var(--me-primary-ink);
+}
+.button:not(.is-outline):not(.is-link):hover,
+.elementor-button:hover,
+.me-btn:hover {
+  background-color: var(--me-primary-dark);
+  border-color: var(--me-primary-dark);
+  color: var(--me-primary-ink);
+}
+.button.is-outline, .me-btn--ghost {
+  background: transparent; border: 2px solid currentColor;
+}
+
+/* ---- Cards --------------------------------------------------------------- */
+.me-card {
+  background: var(--me-surface);
+  border: 1px solid var(--me-line);
+  border-radius: var(--me-radius-lg);
+  padding: var(--me-5);
+  box-shadow: var(--me-shadow);
+}
+.me-card__title { margin: 0 0 var(--me-2); font-size: 1.05rem; }
+.me-card p:last-child { margin-bottom: 0; }
+
+.me-grid { display: grid; gap: var(--me-5); }
+@media (min-width: 640px)  { .me-grid--2 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 960px)  { .me-grid--3 { grid-template-columns: repeat(3, 1fr); }
+                             .me-grid--4 { grid-template-columns: repeat(4, 1fr); } }
+
+/* ---- Trust / licence block ---------------------------------------------- */
+.me-licence {
+  display: flex; flex-wrap: wrap; gap: var(--me-3) var(--me-5);
+  align-items: center;
+  padding: var(--me-4) var(--me-5);
+  background: var(--me-surface-alt);
+  border: 1px solid var(--me-line);
+  border-left: 4px solid var(--me-primary);
+  border-radius: var(--me-radius);
+}
+.me-licence__item { font-weight: 600; color: var(--me-ink); font-size: .95rem; }
+.me-licence__note { color: var(--me-muted); font-size: .85rem; }
+
+/* ---- Temporary contact panel (while online forms are contained) ---------- */
+.me-contact-panel {
+  border: 1px solid var(--me-line);
+  border-left: 5px solid var(--me-secondary);
+  border-radius: var(--me-radius-lg);
+  background: var(--me-surface-alt);
+  padding: var(--me-5);
+}
+.me-contact-panel h2, .me-contact-panel h3 { margin-top: 0; }
+.me-contact-panel a { font-weight: 700; color: var(--me-secondary-dark); word-break: break-word; }
+
+/* ---- Section rhythm ------------------------------------------------------ */
+.me-section { padding: var(--me-8) 0; }
+@media (max-width: 767px) { .me-section { padding: var(--me-7) 0; } }
+.me-section--alt { background: var(--me-surface-alt); }
+.me-wrap { max-width: var(--me-content); margin: 0 auto; padding: 0 20px; }
+
+/* ---- Breadcrumbs --------------------------------------------------------- */
+.me-crumbs { font-size: .85rem; color: var(--me-muted); padding: var(--me-4) 0 0; }
+.me-crumbs a { text-decoration: none; }
+.me-crumbs a:hover { text-decoration: underline; }
+.me-crumbs [aria-current="page"] { color: var(--me-ink); font-weight: 600; }
+
+/* ---- FAQ / accordion ----------------------------------------------------- */
+.accordion-title span, .me-faq__q { font-weight: 600; color: var(--me-ink); }
+.accordion-inner, .me-faq__a { color: var(--me-body); }
+
+/* ---- Tap targets on mobile ---------------------------------------------- */
+@media (max-width: 767px) {
+  a[href^="tel:"], a[href^="mailto:"] { display: inline-block; min-height: 44px; line-height: 44px; }
+  nav a, .nav a { min-height: 44px; display: flex; align-items: center; }
+}
+
+/* ---- Images -------------------------------------------------------------- */
+img { max-width: 100%; height: auto; }
+
+/* ---- Reduced motion ------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important; scroll-behavior: auto !important;
+  }
+}
+
+/* ---- Print --------------------------------------------------------------- */
+@media print {
+  header, footer, nav, .me-contact-panel { break-inside: avoid; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: #555; }
+}
+
+/* ===========================================================================
+   SPECIFICITY LAYER
+   Measured after first application: Elementor's generated per-page CSS was
+   still winning on colour, radius and heading size, so the two systems still
+   diverged. These selectors are scoped tightly enough to beat it without
+   touching layout.
+   =========================================================================== */
+
+/* 🔴 ACCESSIBILITY: Elementor body copy computed to rgb(153,153,153) --
+   #999 on white is 2.85:1, below the 4.5:1 WCAG AA minimum for normal text.
+   This was live on 13 pages. */
+.elementor-widget-text-editor,
+.elementor-widget-text-editor p,
+.elementor-widget-text-editor li,
+.elementor-widget-theme-post-content p,
+.elementor p:not([class]) {
+  color: var(--me-body);
+}
+.elementor-widget-text-editor a { color: var(--me-secondary-dark); }
+
+/* One button shape and one weight across both systems. */
+.elementor-button,
+.button:not(.is-link),
+.me-btn,
+input[type="submit"],
+button[type="submit"] {
+  border-radius: var(--me-radius) !important;
+  font-weight: 600 !important;
+  min-height: 44px !important;
+  padding-left: 22px; padding-right: 22px;
+}
+
+/* Heading scale: keep both systems on the same fluid ramp. */
+.elementor-heading-title,
+.entry-title,
+h1, h2, h3 { font-family: var(--me-sans) !important; }
+h1.elementor-heading-title, .elementor-widget-heading h1 { font-size: clamp(28px, 4.2vw, 46px) !important; }
+h2.elementor-heading-title, .elementor-widget-heading h2 { font-size: clamp(23px, 3vw, 34px) !important; }
+h3.elementor-heading-title, .elementor-widget-heading h3 { font-size: clamp(19px, 2.2vw, 25px) !important; }
+
+/* Muted text must still clear AA. */
+.elementor-widget-text-editor .has-text-color,
+small, .muted, .is-small { color: var(--me-muted); }
