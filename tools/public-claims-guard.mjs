@@ -30,10 +30,20 @@ const SITE = path.join(ROOT, "..");
 /* Approved, documented exceptions. Each is generic reader advice or an
    accurate statement about what DBPR does NOT issue -- never a company claim. */
 const ALLOW = [
+  // --- generic reader advice, not a claim about this company ---
   "conducted by a certified mold inspector",
   "ask a certified and licensed mold inspector",
   "a certified and experienced inspector evaluates",
+  // --- statements that DENY or EXPLAIN a credential rather than assert one ---
+  // The licences page exists partly to explain what we do NOT claim, which means
+  // it has to use the words. Each of these is a denial or an explanation; none
+  // asserts that we hold anything. Keep this list short and readable: if it ever
+  // grows to the point nobody reads it, the guard has stopped being a control.
   "does not issue mold business licenses or certifications",
+  "than took a photograph of a certificate at face value",
+  "Are you certified as well as licensed?",
+  "Why do you not show certificates on the site?",
+  "Because a certificate image shows a moment in the past",
 ];
 
 /* Credential bodies with no verified, current evidence. */
