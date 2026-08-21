@@ -1,0 +1,66 @@
+/* ===========================================================================
+   SITE CHROME — header + footer. One header, one footer, one mobile menu.
+   =========================================================================== */
+
+/* ---- header ------------------------------------------------------------- */
+.me-header{position:sticky;top:0;z-index:60;background:rgba(16,22,19,.94);
+  backdrop-filter:saturate(150%) blur(8px);border-bottom:1px solid var(--line-dark)}
+.me-header__bar{display:flex;align-items:center;gap:20px;height:76px}
+.me-header__logo{display:flex;align-items:center;gap:11px;text-decoration:none;flex:0 0 auto}
+.me-header__logo img{height:46px;width:auto}
+.me-header__name{color:#fff;font-weight:700;font-size:15px;line-height:1.15;letter-spacing:-.01em}
+.me-header__name span{display:block;font-weight:500;font-size:11.5px;color:#93a69a;letter-spacing:.05em}
+
+.me-nav{margin-left:auto;display:none}
+@media(min-width:1060px){.me-nav{display:block}}
+.me-nav ul{display:flex;align-items:center;gap:2px;list-style:none;margin:0;padding:0}
+.me-nav a{display:block;padding:10px 13px;color:#d5ddd8;text-decoration:none;
+  font-size:14.5px;font-weight:550;border-radius:7px;white-space:nowrap}
+.me-nav a:hover{color:#fff;background:rgba(255,255,255,.07)}
+.me-nav a[aria-current="page"]{color:#fff;box-shadow:inset 0 -2px 0 var(--green)}
+.me-nav li{position:relative}
+.me-nav__sub{position:absolute;top:100%;left:0;min-width:262px;background:#fff;
+  border:1px solid var(--line);border-radius:10px;padding:7px;
+  box-shadow:0 14px 34px rgba(0,0,0,.18);display:block;
+  opacity:0;visibility:hidden;transform:translateY(6px);
+  transition:opacity .15s,transform .15s,visibility .15s;flex-direction:column;gap:0}
+.me-nav li:hover>.me-nav__sub,.me-nav li:focus-within>.me-nav__sub{opacity:1;visibility:visible;transform:none}
+.me-nav__sub a{color:var(--ink);padding:10px 12px;font-weight:500}
+.me-nav__sub a:hover{background:var(--green-soft);color:var(--green-dark)}
+
+.me-header__cta{display:none;flex:0 0 auto}
+@media(min-width:1060px){.me-header__cta{display:inline-flex}}
+.me-header .me-btn{height:44px;padding:0 20px;font-size:14.5px}
+
+/* ---- mobile menu -------------------------------------------------------- */
+.me-burger{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;
+  width:46px;height:46px;border:1px solid rgba(255,255,255,.22);background:transparent;
+  border-radius:9px;cursor:pointer}
+@media(min-width:1060px){.me-burger{display:none}}
+.me-burger span{display:block;width:20px;height:2px;background:#fff;position:relative}
+.me-burger span::before,.me-burger span::after{content:"";position:absolute;left:0;width:20px;height:2px;background:#fff}
+.me-burger span::before{top:-6px}.me-burger span::after{top:6px}
+
+.me-mobile{display:none;background:var(--ink-2);border-top:1px solid var(--line-dark)}
+.me-mobile[data-open="true"]{display:block}
+@media(min-width:1060px){.me-mobile{display:none!important}}
+.me-mobile ul{list-style:none;margin:0;padding:8px 0 18px}
+.me-mobile a{display:block;padding:14px 24px;color:#e2e8e4;text-decoration:none;
+  font-size:16px;font-weight:550;min-height:48px}
+.me-mobile a:hover{background:rgba(255,255,255,.06);color:#fff}
+.me-mobile .sub a{padding-left:40px;font-size:15px;color:#aebbb3;font-weight:450}
+.me-mobile__cta{padding:6px 24px 0}
+.me-mobile__cta .me-btn{width:100%}
+
+/* ---- footer ------------------------------------------------------------- */
+.me-footer{background:var(--ink);color:var(--on-dark-2);padding:clamp(44px,5vw,68px) 0 0}
+.me-footer a{color:var(--on-dark-2);text-decoration:none}
+.me-footer a:hover{color:#fff;text-decoration:underline}
+.me-footer__grid{display:grid;gap:32px}
+@media(min-width:760px){.me-footer__grid{grid-template-columns:1.5fr 1fr 1fr 1.2fr}}
+.me-footer h4{color:#fff;font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 14px;font-weight:650}
+.me-footer ul{list-style:none;margin:0;padding:0;display:grid;gap:9px;font-size:14.5px}
+.me-footer__brand p{font-size:14.5px;margin:0 0 10px;max-width:34ch}
+.me-footer__licence{font-size:13.5px;color:#8fa396;border-left:2px solid var(--green);padding-left:12px;margin-top:14px}
+.me-footer__bottom{border-top:1px solid var(--line-dark);margin-top:40px;padding:20px 0;
+  display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;font-size:13.5px}

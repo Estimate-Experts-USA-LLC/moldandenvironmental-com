@@ -1,0 +1,196 @@
+/* ===========================================================================
+   MOLD & ENVIRONMENTAL — page system
+   Reusable components. Not one-off CSS per page.
+   Restrained palette: charcoal, off-white, one environmental green, one
+   muted sage. No gradients. No neon.
+   =========================================================================== */
+
+:root{
+  --ink:#101613;          /* near-black, slightly green-shifted */
+  --ink-2:#18211d;
+  --ink-3:#222c27;
+  --paper:#ffffff;
+  --paper-2:#f5f7f5;      /* off-white section */
+  --sage:#e7ece8;
+  --line:#dde3df;
+  --line-dark:rgba(255,255,255,.10);
+
+  --green:#3f7d3a;        /* professional environmental green */
+  --green-dark:#31632d;
+  --green-soft:#eaf1e9;
+
+  --text:#2b3730;
+  --text-2:#5a6961;
+  --on-dark:#e8ede9;
+  --on-dark-2:#a9b6ae;
+
+  --r:10px;
+  --wrap:1160px;
+  --gap:clamp(20px,3vw,32px);
+
+  --font:"Poppins",Jost,Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+
+.me *,.me *::before,.me *::after{box-sizing:border-box}
+.me{font-family:var(--font);color:var(--text);line-height:1.65;-webkit-font-smoothing:antialiased}
+.me img{max-width:100%;height:auto;display:block}
+
+/* ---- layout ------------------------------------------------------------- */
+.me-container{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+.me-section{padding:clamp(56px,7vw,96px) 0}
+.me-section--tight{padding:clamp(40px,5vw,64px) 0}
+.me-section--paper{background:var(--paper-2)}
+.me-section--dark{background:var(--ink);color:var(--on-dark)}
+.me-section--dark h2,.me-section--dark h3{color:#fff}
+.me-section--dark p{color:var(--on-dark-2)}
+
+/* ---- type --------------------------------------------------------------- */
+.me-eyebrow{
+  display:inline-block;font-size:12px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--green);margin:0 0 14px}
+.me-section--dark .me-eyebrow{color:#9ec79a}
+.me-display{
+  font-size:clamp(30px,4.6vw,52px);line-height:1.08;letter-spacing:-.02em;
+  font-weight:700;color:var(--ink);margin:0 0 18px;text-wrap:balance}
+.me-section--dark .me-display{color:#fff}
+.me-h2{font-size:clamp(24px,3.1vw,36px);line-height:1.18;letter-spacing:-.015em;
+  font-weight:700;color:var(--ink);margin:0 0 16px;text-wrap:balance}
+.me-h3{font-size:clamp(17px,1.6vw,20px);line-height:1.3;font-weight:650;
+  color:var(--ink);margin:0 0 8px}
+.me-lead{font-size:clamp(16px,1.4vw,18.5px);color:var(--text-2);max-width:62ch;margin:0 0 26px}
+.me-section--dark .me-lead{color:var(--on-dark-2)}
+.me-p{max-width:66ch;margin:0 0 16px}
+
+/* ---- buttons: ONE height, ONE radius, no gradients ---------------------- */
+.me-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  height:52px;padding:0 26px;border-radius:var(--r);
+  font-family:var(--font);font-size:15.5px;font-weight:600;letter-spacing:.005em;
+  text-decoration:none;cursor:pointer;border:2px solid transparent;
+  transition:background-color .16s ease,border-color .16s ease,color .16s ease}
+.me-btn--primary{background:var(--green);border-color:var(--green);color:#fff}
+.me-btn--primary:hover{background:var(--green-dark);border-color:var(--green-dark);color:#fff}
+.me-btn--ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.me-btn--ghost:hover{border-color:var(--ink);background:var(--paper-2)}
+.me-section--dark .me-btn--ghost{border-color:rgba(255,255,255,.28);color:#fff}
+.me-section--dark .me-btn--ghost:hover{border-color:#fff;background:rgba(255,255,255,.07)}
+.me-btn-group{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+@media(max-width:560px){
+  .me-btn-group{flex-direction:column;align-items:stretch}
+  .me-btn{width:100%}
+}
+.me-textlink{color:var(--green);font-weight:600;text-decoration:none;display:inline-flex;gap:6px;align-items:center}
+.me-textlink:hover{text-decoration:underline}
+.me-textlink::after{content:"→";transition:transform .16s ease}
+.me-textlink:hover::after{transform:translateX(3px)}
+
+/* ---- hero --------------------------------------------------------------- */
+.me-hero{position:relative;background:var(--ink);color:var(--on-dark);overflow:hidden}
+.me-hero__media{position:absolute;inset:0;z-index:0}
+.me-hero__media img{width:100%;height:100%;object-fit:cover;opacity:.30}
+.me-hero__scrim{position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(16,22,19,.96) 0%,rgba(16,22,19,.86) 46%,rgba(16,22,19,.55) 100%)}
+.me-hero__inner{position:relative;z-index:2;padding:clamp(64px,9vw,116px) 0 clamp(56px,7vw,92px)}
+.me-hero__copy{max-width:640px}
+.me-hero .me-display{color:#fff}
+.me-hero .me-lead{color:#c3cec7}
+
+/* ---- trust strip -------------------------------------------------------- */
+.me-trust{background:var(--ink-2);border-top:1px solid var(--line-dark);
+  border-bottom:1px solid var(--line-dark);padding:20px 0}
+.me-trust__grid{display:grid;gap:14px 28px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:820px){.me-trust__grid{grid-template-columns:repeat(4,1fr)}}
+.me-trust__item{display:flex;flex-direction:column;gap:2px}
+.me-trust__k{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:#8fa396}
+.me-trust__v{font-size:15px;font-weight:650;color:#fff}
+
+/* ---- cards -------------------------------------------------------------- */
+.me-grid{display:grid;gap:var(--gap)}
+@media(min-width:700px){.me-grid--2{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:980px){.me-grid--3{grid-template-columns:repeat(3,1fr)}
+                        .me-grid--4{grid-template-columns:repeat(4,1fr)}}
+.me-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;display:flex;flex-direction:column;transition:border-color .16s ease}
+.me-card:hover{border-color:#bfcdc4}
+.me-card__media{aspect-ratio:16/10;background:var(--sage);overflow:hidden}
+.me-card__media img{width:100%;height:100%;object-fit:cover}
+.me-card__body{padding:22px;display:flex;flex-direction:column;gap:8px;flex:1}
+.me-card__body p{color:var(--text-2);margin:0;font-size:15px}
+.me-card__body .me-textlink{margin-top:auto;padding-top:12px}
+
+/* ---- split editorial block --------------------------------------------- */
+.me-split{display:grid;gap:clamp(28px,4vw,56px);align-items:center}
+@media(min-width:900px){.me-split{grid-template-columns:1fr 1fr}
+                        .me-split--flip .me-split__media{order:2}}
+.me-split__media img{border-radius:var(--r);width:100%}
+
+/* ---- process ------------------------------------------------------------ */
+.me-steps{display:grid;gap:var(--gap);counter-reset:s}
+@media(min-width:760px){.me-steps{grid-template-columns:repeat(4,1fr)}}
+.me-step{border-top:2px solid var(--green);padding-top:16px}
+.me-step__n{font-size:12px;font-weight:700;letter-spacing:.12em;color:var(--green);display:block;margin-bottom:6px}
+.me-step p{font-size:15px;color:var(--text-2);margin:0}
+.me-section--dark .me-step{border-top-color:#5f9a5a}
+.me-section--dark .me-step__n{color:#9ec79a}
+
+/* ---- reasons ------------------------------------------------------------ */
+.me-reason{border-left:2px solid var(--line);padding:2px 0 2px 18px}
+.me-reason p{margin:0;color:var(--text-2);font-size:15px}
+.me-section--dark .me-reason{border-left-color:rgba(255,255,255,.16)}
+
+/* ---- reviews ------------------------------------------------------------ */
+.me-review{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:24px}
+.me-review blockquote{margin:0 0 14px;font-size:16px;color:var(--text);line-height:1.6}
+.me-review cite{font-style:normal;font-size:14px;color:var(--text-2);font-weight:600}
+
+/* ---- FAQ ---------------------------------------------------------------- */
+.me-faq{border-top:1px solid var(--line)}
+.me-faq details{border-bottom:1px solid var(--line)}
+.me-faq summary{cursor:pointer;list-style:none;padding:18px 40px 18px 0;position:relative;
+  font-weight:620;color:var(--ink);font-size:16.5px}
+.me-faq summary::-webkit-details-marker{display:none}
+.me-faq summary::after{content:"+";position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  font-size:22px;font-weight:400;color:var(--green);line-height:1}
+.me-faq details[open] summary::after{content:"–"}
+.me-faq details p{margin:0 0 18px;color:var(--text-2);max-width:70ch}
+.me-faq summary:focus-visible{outline:3px solid var(--green);outline-offset:3px;border-radius:4px}
+
+/* ---- area links --------------------------------------------------------- */
+.me-areas{display:flex;flex-wrap:wrap;gap:10px}
+.me-areas a{display:inline-block;padding:9px 15px;border:1px solid var(--line);
+  border-radius:999px;text-decoration:none;color:var(--ink);font-size:14.5px;font-weight:550}
+.me-areas a:hover{border-color:var(--green);color:var(--green-dark)}
+.me-section--dark .me-areas a{border-color:rgba(255,255,255,.2);color:#fff}
+.me-section--dark .me-areas a:hover{border-color:#9ec79a;color:#9ec79a}
+
+/* ---- contact panel (online forms contained) ----------------------------- */
+.me-panel{border:1px solid var(--line);border-radius:var(--r);background:var(--paper);padding:26px}
+.me-panel--muted{background:var(--green-soft);border-color:#cfe0cc}
+.me-panel h3{margin-top:0}
+.me-panel dl{margin:0;display:grid;gap:12px}
+.me-panel dt{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)}
+.me-panel dd{margin:2px 0 0;font-size:17px;font-weight:600}
+.me-panel dd a{color:var(--ink);text-decoration:none}
+.me-panel dd a:hover{color:var(--green-dark);text-decoration:underline}
+
+/* ---- accessibility ------------------------------------------------------ */
+.me a:focus-visible,.me button:focus-visible,.me summary:focus-visible{
+  outline:3px solid var(--green);outline-offset:2px;border-radius:4px}
+.me-skip{position:absolute;left:-9999px}
+.me-skip:focus{left:12px;top:12px;z-index:99;background:#fff;color:var(--ink);
+  padding:10px 16px;border-radius:6px;position:fixed}
+@media(prefers-reduced-motion:reduce){.me *{transition:none!important;animation:none!important}}
+
+/* ---- FIX: ghost button on the hero -------------------------------------
+   The hero is dark but is not .me-section--dark, so .me-btn--ghost got the
+   light-surface treatment: dark border and dark text on a dark image. The
+   "View Services" button was effectively invisible. Seen by looking at the
+   screenshot; no automated check would have reported it. */
+.me-hero .me-btn--ghost{border-color:rgba(255,255,255,.34);color:#fff}
+.me-hero .me-btn--ghost:hover{border-color:#fff;background:rgba(255,255,255,.09)}
+
+/* Card copy needs a little more room at four across */
+@media(min-width:980px){
+  .me-card__body{padding:24px 22px 26px}
+  .me-card__body p{font-size:14.5px;line-height:1.6}
+}
