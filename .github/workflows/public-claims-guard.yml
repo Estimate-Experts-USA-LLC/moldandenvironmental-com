@@ -37,6 +37,15 @@ jobs:
           cp /tmp/idx.bak index.html
           node tools/public-claims-guard.mjs
           echo "null control OK: guard fails on injected claim, passes when restored"
+      # ---- intake: brand address, removed claims, form disclosure ---------
+      # The claims guard above passed a head that loaded the inquiry form from
+      # an Estimate Experts address, and passed main while it still showed
+      # unsupported review quotes and a "both are answered" promise. This guard
+      # fails on those, and on the form without its disclosure sentence.
+      - name: Audit intake branding, removed claims and the form disclosure
+        run: node tools/intake-brand-guard.mjs
+      - name: Prove the intake guard can go red
+        run: node tools/intake-brand-guard-null-control.mjs
       - name: Audit asset references (no 404s, incl. srcset and query strings)
         run: node tools/asset-guard.mjs
       - name: Prove the asset guard can go red
