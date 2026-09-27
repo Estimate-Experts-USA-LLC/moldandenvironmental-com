@@ -100,6 +100,14 @@ const listedWithPromise = LIST.filter((p) => { const s = readFileSync(p, "utf8")
 for (const f of [GUARD, HOME, CONTACT, LOOKALIKE, ...LIST]) remember(f);
 
 const beforeBody = (html) => (s) => s.replace("</body>", html + "\n</body>");
+
+/* The release carries the form on the home page; a rollback removes it. The
+   mutations that edit the form in place need it, so without it they plant an
+   equivalent form instead. Every rule is still broken in both states. */
+const MOLD_SCRIPT = "https://links.moldandenvironmental.com/js/form_embed.js";
+const FORM_ON_HOME = readFileSync(HOME, "utf8").includes(MOLD_SCRIPT);
+const PLANTED_DISCLOSURE = "<p>It is not permission for marketing email or text messages.</p>";
+const PLANTED_MOLD_FORM = '<iframe src="https://links.moldandenvironmental.com/widget/form/test"></iframe><script src="' + MOLD_SCRIPT + '"></script>';
 const dropFromList = (paths) => (s) => {
   let out = s;
   for (const p of paths) out = out.replace(`  "${p}",\n`, "");
@@ -110,15 +118,21 @@ const dropFromList = (paths) => (s) => {
 const MUTATIONS = [
   { name: "an Estimate Experts address on the home page", edits: [[HOME, beforeBody('<p><a href="https://www.estimate-experts.com/">x</a></p>')]], expect: "ESTIMATE_EXPERTS_ADDRESS" },
   { name: "an Estimate Experts address written with a character reference", edits: [[HOME, beforeBody('<p><a href="https://www.estimate&#45;experts.com/">x</a></p>')]], expect: "ESTIMATE_EXPERTS_ADDRESS" },
-  { name: "the form script served from a host that is not Mold's", edits: [[HOME, (s) => s.replace("https://links.moldandenvironmental.com/js/form_embed.js", "https://link.msgsndr.com/js/form_embed.js")]], expect: "FOREIGN_FORM_HOST" },
+  FORM_ON_HOME
+    ? { name: "the form script served from a host that is not Mold's", edits: [[HOME, (s) => s.replace(MOLD_SCRIPT, "https://link.msgsndr.com/js/form_embed.js")]], expect: "FOREIGN_FORM_HOST" }
+    : { name: "a form script from a host that is not Mold's, planted with a disclosure", edits: [[HOME, beforeBody('<script src="https://link.msgsndr.com/js/form_embed.js"></script>' + PLANTED_DISCLOSURE)]], expect: "FOREIGN_FORM_HOST" },
   { name: "a foreign form host with an explicit :443 port", edits: [[HOME, beforeBody('<iframe src="https://link.msgsndr.com:443/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
   { name: "a foreign host hidden behind a Mold user-info prefix", edits: [[HOME, beforeBody('<iframe src="https://links.moldandenvironmental.com@link.msgsndr.com/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
   { name: "a protocol-relative foreign form host", edits: [[HOME, beforeBody('<iframe src="//link.msgsndr.com/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
   { name: "a foreign form URL split by an encoded line feed", edits: [[HOME, beforeBody('<iframe src="https://link.msgsndr.com&#10;/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
   { name: "a foreign form URL split by a literal tab", edits: [[HOME, beforeBody('<iframe src="https://link.msgsndr.com' + String.fromCharCode(9) + '/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
-  { name: "the Mold form URLs split by encoded line feeds, disclosure removed", edits: [[HOME, (s) => s.split("https://links.moldandenvironmental.com/").join("https://links.moldandenvironmental.com&#10;/").replace("It is not permission for marketing email or text messages.", "")]], expect: "FORM_WITHOUT_DISCLOSURE" },
+  FORM_ON_HOME
+    ? { name: "the Mold form URLs split by encoded line feeds, disclosure removed", edits: [[HOME, (s) => s.split("https://links.moldandenvironmental.com/").join("https://links.moldandenvironmental.com&#10;/").replace("It is not permission for marketing email or text messages.", "")]], expect: "FORM_WITHOUT_DISCLOSURE" }
+    : { name: "a Mold form URL split by an encoded line feed on a page without the disclosure", edits: [[CONTACT, beforeBody('<iframe src="https://links.moldandenvironmental.com&#10;/widget/form/test"></iframe>')]], expect: "FORM_WITHOUT_DISCLOSURE" },
   { name: "the Mold form with :443 on a page without the disclosure", edits: [[CONTACT, beforeBody('<iframe src="https://links.moldandenvironmental.com:443/widget/form/test"></iframe>')]], expect: "FORM_WITHOUT_DISCLOSURE" },
-  { name: "the form without its disclosure sentence", edits: [[HOME, (s) => s.replace("It is not permission for marketing email or text messages.", "")]], expect: "FORM_WITHOUT_DISCLOSURE" },
+  FORM_ON_HOME
+    ? { name: "the form without its disclosure sentence", edits: [[HOME, (s) => s.replace("It is not permission for marketing email or text messages.", "")]], expect: "FORM_WITHOUT_DISCLOSURE" }
+    : { name: "the Mold form planted on a page without the disclosure", edits: [[CONTACT, beforeBody(PLANTED_MOLD_FORM)]], expect: "FORM_WITHOUT_DISCLOSURE" },
   { name: "the removed review label comes back", edits: [[HOME, beforeBody("<p>Verified customer review</p>")]], expect: "UNSUPPORTED_REVIEW_LABEL" },
   { name: "the review label with decimal-encoded spaces", edits: [[HOME, beforeBody("<p>Verified&#32;customer&#32;review</p>")]], expect: "UNSUPPORTED_REVIEW_LABEL" },
   { name: "the review label with semicolonless &nbsp", edits: [[HOME, beforeBody("<p>Verified&nbspcustomer&nbspreview</p>")]], expect: "UNSUPPORTED_REVIEW_LABEL" },
@@ -144,8 +158,12 @@ const cleanAll = (paths) => paths.map((p) => [p, (s) => s.replace(PROMISE, "are 
 const HARMLESS = [
   { name: "a harmless line", edits: [[HOME, beforeBody("<p>Call or email us about your property.</p>")]] },
   { name: "harmless text with encoded spaces", edits: [[HOME, beforeBody("<p>Call&#32;or&#32;email&#x20;us.</p>")]] },
-  { name: "the Mold form address written with its default :443 port", edits: [[HOME, (s) => s.replace("https://links.moldandenvironmental.com/js/form_embed.js", "https://links.moldandenvironmental.com:443/js/form_embed.js")]] },
-  { name: "the Mold form URLs split by encoded line feeds, disclosure kept", edits: [[HOME, (s) => s.split("https://links.moldandenvironmental.com/").join("https://links.moldandenvironmental.com&#10;/")]] },
+  FORM_ON_HOME
+    ? { name: "the Mold form address written with its default :443 port", edits: [[HOME, (s) => s.replace(MOLD_SCRIPT, "https://links.moldandenvironmental.com:443/js/form_embed.js")]] }
+    : { name: "a Mold form with its default :443 port, planted with a disclosure", edits: [[HOME, beforeBody('<iframe src="https://links.moldandenvironmental.com:443/widget/form/test"></iframe>' + PLANTED_DISCLOSURE)]] },
+  FORM_ON_HOME
+    ? { name: "the Mold form URLs split by encoded line feeds, disclosure kept", edits: [[HOME, (s) => s.split("https://links.moldandenvironmental.com/").join("https://links.moldandenvironmental.com&#10;/")]] }
+    : { name: "a Mold form URL split by an encoded line feed, planted with a disclosure", edits: [[HOME, beforeBody('<iframe src="https://links.moldandenvironmental.com&#10;/widget/form/test"></iframe>' + PLANTED_DISCLOSURE)]] },
   { name: "a double-encoded promise that stays literal text", edits: [[HOME, beforeBody("<p>both&amp;#32;are&amp;#32;answered</p>")]] },
 ];
 if (listedWithPromise.length) {
@@ -172,7 +190,7 @@ if (r.code !== 0) { console.error("NULL CONTROL ABORTED: the legacy list check f
 console.log(r.out.trim());
 r = guard();
 if (r.code !== 0) { console.error("NULL CONTROL ABORTED: guard does not pass on unmodified content.\n" + r.out); process.exit(1); }
-console.log("baseline: intake brand guard PASSES on unmodified content\n");
+console.log(`baseline: intake brand guard PASSES on unmodified content (form on the home page: ${FORM_ON_HOME ? "yes" : "no"})\n`);
 
 for (const m of MUTATIONS) {
   const noop = apply(m.edits);
