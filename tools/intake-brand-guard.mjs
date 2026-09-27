@@ -16,11 +16,16 @@
    a later paste. Rules 3 and 4 judge RENDERED text; rules 1 and 2 judge the
    whole served page, because an address in a script tag is still served.
 
-   Every rule reads the page AFTER character references are decoded, the way
-   a browser does (&#32;, &#x20;, &amp; and the like), and after invisible
-   zero-width characters are removed. URLs are parsed with the URL class, so an
-   explicit port (:443), a protocol-relative "//host", a user-info prefix
-   ("mold@other-host") or backslashes cannot hide the real host. */
+   Character references are decoded in one pass, the way the HTML parser does:
+   numeric references, known named references, and the legacy names a browser
+   also accepts WITHOUT a semicolon (&nbspcustomer is NBSP + "customer"). In an
+   attribute value a semicolonless legacy name followed by a letter, digit or
+   "=" stays literal, as the HTML spec requires. Unknown names stay as text.
+   Invisible zero-width characters are removed. Every URL is parsed with the
+   URL class after removing ASCII tab, line feed and carriage return and
+   trimming control characters and spaces, as the URL parser does, so an
+   explicit port, a protocol-relative "//host", a user-info prefix, a
+   backslash or a newline inside the value cannot hide the real host. */
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
@@ -73,33 +78,104 @@ function findHtml(dir, base = dir, out = []) {
 const ROOT = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const SITE = path.join(ROOT, "..");
 
-/* Invisible characters a paste can carry: soft hyphen, zero-width space,
-   non-joiner, joiner, word joiner, byte-order mark. Built from code points so
-   the source stays plain ASCII. */
-const INVISIBLE = new RegExp("[" + [0xad, 0x200b, 0x200c, 0x200d, 0x2060, 0xfeff].map((c) => String.fromCharCode(c)).join("") + "]", "g");
+const chr = (cp) => String.fromCodePoint(cp);
 
-const NAMED = {
-  nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', apos: "'",
-  rsquo: "'", lsquo: "'", rdquo: '"', ldquo: '"', hellip: "...",
-  ndash: "-", mdash: "-", shy: "", sol: "/", bsol: "\\", colon: ":",
-  period: ".", comma: ",", hyphen: "-", dash: "-", commat: "@",
-};
+/* The 106 legacy named references the HTML parser accepts without a
+   semicolon, with their code points (hexadecimal). They also count with one. */
+const LEGACY_TABLE =
+  "AElig C6 AMP 26 Aacute C1 Acirc C2 Agrave C0 Aring C5 Atilde C3 Auml C4 COPY A9 Ccedil C7 ETH D0 Eacute C9 " +
+  "Ecirc CA Egrave C8 Euml CB GT 3E Iacute CD Icirc CE Igrave CC Iuml CF LT 3C Ntilde D1 Oacute D3 Ocirc D4 " +
+  "Ograve D2 Oslash D8 Otilde D5 Ouml D6 QUOT 22 REG AE THORN DE Uacute DA Ucirc DB Ugrave D9 Uuml DC Yacute DD " +
+  "aacute E1 acirc E2 acute B4 aelig E6 agrave E0 amp 26 aring E5 atilde E3 auml E4 brvbar A6 ccedil E7 cedil B8 " +
+  "cent A2 copy A9 curren A4 deg B0 divide F7 eacute E9 ecirc EA egrave E8 eth F0 euml EB frac12 BD frac14 BC " +
+  "frac34 BE gt 3E iacute ED icirc EE iexcl A1 igrave EC iquest BF iuml EF laquo AB lt 3C macr AF micro B5 " +
+  "middot B7 nbsp A0 not AC ntilde F1 oacute F3 ocirc F4 ograve F2 ordf AA ordm BA oslash F8 otilde F5 ouml F6 " +
+  "para B6 plusmn B1 pound A3 quot 22 raquo BB reg AE sect A7 shy AD sup1 B9 sup2 B2 sup3 B3 szlig DF thorn FE " +
+  "times D7 uacute FA ucirc FB ugrave F9 uml A8 uuml FC yacute FD yen A5 yuml FF";
 
-/* One pass, like a browser: "&amp;#32;" stays the literal text "&#32;". */
-export function decodeReferences(s) {
-  return s.replace(/&(#[0-9]+|#[xX][0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);?/g, (m, ref) => {
-    if (ref[0] === "#") {
-      const hex = ref[1] === "x" || ref[1] === "X";
-      const cp = hex ? parseInt(ref.slice(2), 16) : parseInt(ref.slice(1), 10);
-      if (!Number.isFinite(cp) || cp <= 0 || cp > 0x10ffff) return " ";
-      try { return String.fromCodePoint(cp); } catch { return " "; }
+/* Named references that count only with a semicolon and matter here: spaces,
+   invisible characters and the punctuation a URL or phrase could be built
+   from. Any name not listed stays as text (it is not a space). */
+const SEMICOLON_TABLE =
+  "Tab 9 NewLine A nbsp A0 NonBreakingSpace A0 ensp 2002 emsp 2003 emsp13 2004 emsp14 2005 numsp 2007 " +
+  "puncsp 2008 thinsp 2009 ThinSpace 2009 hairsp 200A VeryThinSpace 200A ZeroWidthSpace 200B " +
+  "NegativeVeryThinSpace 200B NegativeThinSpace 200B NegativeMediumSpace 200B NegativeThickSpace 200B " +
+  "zwnj 200C zwj 200D NoBreak 2060 MediumSpace 205F ApplyFunction 2061 af 2061 InvisibleTimes 2062 it 2062 " +
+  "InvisibleComma 2063 ic 2063 apos 27 lsquo 2018 rsquo 2019 ldquo 201C rdquo 201D hellip 2026 ndash 2013 " +
+  "mdash 2014 hyphen 2010 dash 2010 sol 2F bsol 5C colon 3A period 2E comma 2C commat 40 lowbar 5F num 23 " +
+  "excl 21 quest 3F lpar 28 rpar 29 semi 3B equals 3D plus 2B percnt 25 dollar 24 ast 2A lsqb 5B rsqb 5D " +
+  "lcub 7B rcub 7D verbar 7C vert 7C grave 60";
+
+function parseTable(t) {
+  const parts = t.trim().split(/\s+/);
+  const map = new Map();
+  for (let i = 0; i < parts.length; i += 2) map.set(parts[i], chr(parseInt(parts[i + 1], 16)));
+  return map;
+}
+const LEGACY = parseTable(LEGACY_TABLE);
+const WITH_SEMICOLON = new Map([...LEGACY, ...parseTable(SEMICOLON_TABLE)]);
+const LONGEST_LEGACY = Math.max(...[...LEGACY.keys()].map((k) => k.length));
+const REPLACEMENT = chr(0xfffd);
+
+const NUMERIC_REF = /&#(?:([xX])([0-9a-fA-F]+)|([0-9]+));?/y;
+const NAMED_REF = /&([a-zA-Z][a-zA-Z0-9]*)(;?)/y;
+const ATTR_STOP = /[A-Za-z0-9=]/;
+
+/* One pass, like the HTML parser: "&amp;#32;" stays the literal text "&#32;". */
+export function decodeReferences(s, inAttribute = false) {
+  let out = "";
+  let i = 0;
+  while (i < s.length) {
+    const amp = s.indexOf("&", i);
+    if (amp < 0) { out += s.slice(i); break; }
+    out += s.slice(i, amp);
+
+    NUMERIC_REF.lastIndex = amp;
+    const num = NUMERIC_REF.exec(s);
+    if (num) {
+      const cp = num[1] ? parseInt(num[2], 16) : parseInt(num[3], 10);
+      const bad = !Number.isFinite(cp) || cp === 0 || cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff);
+      out += bad ? REPLACEMENT : chr(cp);
+      i = NUMERIC_REF.lastIndex;
+      continue;
     }
-    const v = NAMED[ref.toLowerCase()];
-    return v !== undefined ? v : " ";
-  });
+
+    NAMED_REF.lastIndex = amp;
+    const named = NAMED_REF.exec(s);
+    if (named) {
+      const run = named[1];
+      if (named[2] === ";" && WITH_SEMICOLON.has(run)) {
+        out += WITH_SEMICOLON.get(run);
+        i = NAMED_REF.lastIndex;
+        continue;
+      }
+      let matched = 0;
+      for (let k = Math.min(run.length, LONGEST_LEGACY); k >= 2; k--) {
+        if (LEGACY.has(run.slice(0, k))) { matched = k; break; }
+      }
+      if (matched) {
+        const after = s[amp + 1 + matched];
+        const semicolon = after === ";";
+        if (!(inAttribute && !semicolon && after !== undefined && ATTR_STOP.test(after))) {
+          out += LEGACY.get(run.slice(0, matched));
+          i = amp + 1 + matched + (semicolon ? 1 : 0);
+          continue;
+        }
+      }
+    }
+    out += "&";
+    i = amp + 1;
+  }
+  return out;
 }
 
-const normalize = (s) => decodeReferences(s).replace(INVISIBLE, "");
+/* Invisible characters a paste can carry: soft hyphen, Mongolian vowel
+   separator, zero-width space, non-joiner, joiner, word joiner, the invisible
+   operators, byte-order mark. Built from code points so the source stays
+   plain ASCII. */
+const INVISIBLE = new RegExp("[" + [0xad, 0x180e, 0x200b, 0x200c, 0x200d, 0x2060, 0x2061, 0x2062, 0x2063, 0x2064, 0xfeff].map(chr).join("") + "]", "g");
+
+const normalizeText = (s) => decodeReferences(s, false).replace(INVISIBLE, "");
 
 const strip = (s) =>
   s.replace(/<script[\s\S]*?<\/script>/gi, "")
@@ -110,28 +186,62 @@ const strip = (s) =>
    The second catches a phrase split by an inline tag inside a word. */
 function renderedTexts(html) {
   const body = strip(html);
-  const spaced = normalize(body.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
-  const joined = normalize(body.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ");
+  const spaced = normalizeText(body.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
+  const joined = normalizeText(body.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ");
   return { spaced, joined };
 }
 
-/* Every absolute or protocol-relative URL, parsed. Backslashes count as
+/* What the URL parser does to its input first: remove every ASCII tab, line
+   feed and carriage return, then trim leading and trailing C0 controls and
+   spaces. */
+const TAB_NEWLINE = new RegExp("[" + [9, 10, 13].map(chr).join("") + "]", "g");
+const EDGE_C0 = new RegExp("^[" + chr(0) + "-" + chr(0x20) + "]+|[" + chr(0) + "-" + chr(0x20) + "]+$", "g");
+const urlInput = (s) => s.replace(TAB_NEWLINE, "").replace(EDGE_C0, "");
+
+/* Absolute or protocol-relative URL candidates. Backslashes count as
    slashes, as they do in a browser for http and https. */
 const URL_CANDIDATE = /(?:https?:)?[\\/]{2}[^\s"'<>()`]+/gi;
 
-function widgetUrls(servedText) {
+/* Every attribute value of every start tag, quoted or not; a ">" inside a
+   quoted value does not end the tag. */
+const START_TAG = /<[a-zA-Z][^\s/>]*((?:\s+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*)\s*\/?>/g;
+const ATTRIBUTE = /([^\s"'>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+
+function classify(candidate) {
+  let c = candidate.replace(/\\/g, "/");
+  if (c.startsWith("//")) c = "https:" + c;
+  let u;
+  try { u = new URL(c); } catch { return null; }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+  const p = u.pathname.toLowerCase();
+  const isForm = p.includes("/widget/form/") || p.endsWith("/js/form_embed.js");
+  const isWidget = isForm || p.includes("/widget/survey/") || p.includes("/widget/booking/");
+  if (!isWidget) return null;
+  return { host: u.hostname.toLowerCase().replace(/\.$/, ""), isForm, href: u.href };
+}
+
+function widgetUrls(html, served) {
   const out = [];
-  for (const m of servedText.matchAll(URL_CANDIDATE)) {
-    let candidate = m[0].replace(/\\/g, "/");
-    if (candidate.startsWith("//")) candidate = "https:" + candidate;
-    let u;
-    try { u = new URL(candidate); } catch { continue; }
-    const p = u.pathname.toLowerCase();
-    const isForm = p.includes("/widget/form/") || p.endsWith("/js/form_embed.js");
-    const isWidget = isForm || p.includes("/widget/survey/") || p.includes("/widget/booking/");
-    if (!isWidget) continue;
-    out.push({ host: u.hostname.toLowerCase().replace(/\.$/, ""), isForm, index: m.index, text: m[0] });
+  const seen = new Set();
+  const add = (found, index, text) => {
+    if (!found) return;
+    const key = found.href + "@" + index;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ ...found, index, text });
+  };
+  // Attribute values, decoded with attribute rules and normalized like the
+  // URL parser's input.
+  for (const tag of html.matchAll(START_TAG)) {
+    for (const a of tag[1].matchAll(ATTRIBUTE)) {
+      const raw = a[2] ?? a[3] ?? a[4];
+      if (raw === undefined) continue;
+      const value = urlInput(decodeReferences(raw, true));
+      for (const m of value.matchAll(URL_CANDIDATE)) add(classify(m[0]), tag.index, tag[0]);
+    }
   }
+  // Everything else served, scripts included.
+  for (const m of served.matchAll(URL_CANDIDATE)) add(classify(m[0]), -1 - m.index, m[0]);
   return out;
 }
 
@@ -145,7 +255,7 @@ function phraseMatches(texts, rx) {
 
 export function auditFile(file, html) {
   const findings = [];
-  const served = normalize(html);
+  const served = normalizeText(html);
 
   // 1. Estimate Experts address anywhere in the served page. An allowed host
   //    (only ever added by written exception) is blanked out first.
@@ -157,10 +267,12 @@ export function auditFile(file, html) {
 
   // 2. Form or form script served from a host that is not Mold's own.
   let formOnPage = false;
-  for (const w of widgetUrls(served)) {
+  const reported = new Set();
+  for (const w of widgetUrls(html, served)) {
     if (w.isForm) formOnPage = true;
-    if (!ALLOWED_FORM_HOSTS.includes(w.host)) {
-      findings.push({ file, kind: "FOREIGN_FORM_HOST", match: w.host, context: context(served, w.index, w.text.length) });
+    if (!ALLOWED_FORM_HOSTS.includes(w.host) && !reported.has(w.href)) {
+      reported.add(w.href);
+      findings.push({ file, kind: "FOREIGN_FORM_HOST", match: w.host, context: w.href });
     }
   }
 

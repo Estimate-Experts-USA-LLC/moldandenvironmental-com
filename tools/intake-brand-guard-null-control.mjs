@@ -114,10 +114,15 @@ const MUTATIONS = [
   { name: "a foreign form host with an explicit :443 port", edits: [[HOME, beforeBody('<iframe src="https://link.msgsndr.com:443/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
   { name: "a foreign host hidden behind a Mold user-info prefix", edits: [[HOME, beforeBody('<iframe src="https://links.moldandenvironmental.com@link.msgsndr.com/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
   { name: "a protocol-relative foreign form host", edits: [[HOME, beforeBody('<iframe src="//link.msgsndr.com/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
+  { name: "a foreign form URL split by an encoded line feed", edits: [[HOME, beforeBody('<iframe src="https://link.msgsndr.com&#10;/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
+  { name: "a foreign form URL split by a literal tab", edits: [[HOME, beforeBody('<iframe src="https://link.msgsndr.com' + String.fromCharCode(9) + '/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
+  { name: "the Mold form URLs split by encoded line feeds, disclosure removed", edits: [[HOME, (s) => s.split("https://links.moldandenvironmental.com/").join("https://links.moldandenvironmental.com&#10;/").replace("It is not permission for marketing email or text messages.", "")]], expect: "FORM_WITHOUT_DISCLOSURE" },
   { name: "the Mold form with :443 on a page without the disclosure", edits: [[CONTACT, beforeBody('<iframe src="https://links.moldandenvironmental.com:443/widget/form/test"></iframe>')]], expect: "FORM_WITHOUT_DISCLOSURE" },
   { name: "the form without its disclosure sentence", edits: [[HOME, (s) => s.replace("It is not permission for marketing email or text messages.", "")]], expect: "FORM_WITHOUT_DISCLOSURE" },
   { name: "the removed review label comes back", edits: [[HOME, beforeBody("<p>Verified customer review</p>")]], expect: "UNSUPPORTED_REVIEW_LABEL" },
   { name: "the review label with decimal-encoded spaces", edits: [[HOME, beforeBody("<p>Verified&#32;customer&#32;review</p>")]], expect: "UNSUPPORTED_REVIEW_LABEL" },
+  { name: "the review label with semicolonless &nbsp", edits: [[HOME, beforeBody("<p>Verified&nbspcustomer&nbspreview</p>")]], expect: "UNSUPPORTED_REVIEW_LABEL" },
+  { name: "the answer promise with semicolonless &nbsp", edits: [[CONTACT, beforeBody("<p>both&nbspare&nbspanswered</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
   { name: "the removed answer promise comes back on the contact page", edits: [[CONTACT, beforeBody("<p>Phone and email are the quickest ways to reach us, and both are answered.</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
   { name: "the answer promise with hexadecimal-encoded spaces", edits: [[CONTACT, beforeBody("<p>both&#x20;are&#x20;answered</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
   { name: "an unlisted page named like the listed ones gets the promise", edits: [[LOOKALIKE, beforeBody("<p>Phone and email are the quickest ways to reach us, and both are answered.</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
@@ -140,6 +145,8 @@ const HARMLESS = [
   { name: "a harmless line", edits: [[HOME, beforeBody("<p>Call or email us about your property.</p>")]] },
   { name: "harmless text with encoded spaces", edits: [[HOME, beforeBody("<p>Call&#32;or&#32;email&#x20;us.</p>")]] },
   { name: "the Mold form address written with its default :443 port", edits: [[HOME, (s) => s.replace("https://links.moldandenvironmental.com/js/form_embed.js", "https://links.moldandenvironmental.com:443/js/form_embed.js")]] },
+  { name: "the Mold form URLs split by encoded line feeds, disclosure kept", edits: [[HOME, (s) => s.split("https://links.moldandenvironmental.com/").join("https://links.moldandenvironmental.com&#10;/")]] },
+  { name: "a double-encoded promise that stays literal text", edits: [[HOME, beforeBody("<p>both&amp;#32;are&amp;#32;answered</p>")]] },
 ];
 if (listedWithPromise.length) {
   const one = listedWithPromise[0];
