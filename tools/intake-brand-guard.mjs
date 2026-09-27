@@ -14,7 +14,13 @@
    unsupported review quotes and the "both are answered" promise. Mold must
    never carry another brand's address, and removed claims must not return by
    a later paste. Rules 3 and 4 judge RENDERED text; rules 1 and 2 judge the
-   raw page, because an address in a script tag is still served to visitors. */
+   whole served page, because an address in a script tag is still served.
+
+   Every rule reads the page AFTER character references are decoded, the way
+   a browser does (&#32;, &#x20;, &amp; and the like), and after invisible
+   zero-width characters are removed. URLs are parsed with the URL class, so an
+   explicit port (:443), a protocol-relative "//host", a user-info prefix
+   ("mold@other-host") or backslashes cannot hide the real host. */
 import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 
@@ -32,7 +38,8 @@ const DISCLOSURE = "It is not permission for marketing email or text messages.";
    phrase fails as STALE_LEGACY_ENTRY until it is taken off the list, and no
    other page may carry the phrase. The intake pages (the home, contact and
    privacy pages) are deliberately NOT here, so a rollback cannot bring the
-   promise back to them. */
+   promise back to them. The null control holds the approved initial set and
+   fails if this list ever names a page outside it. */
 export const LEGACY_ANSWER_PROMISE_PAGES = [
   "about/index.html",
   "air-quality-testing/index.html",
@@ -66,57 +73,110 @@ function findHtml(dir, base = dir, out = []) {
 const ROOT = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const SITE = path.join(ROOT, "..");
 
+/* Invisible characters a paste can carry: soft hyphen, zero-width space,
+   non-joiner, joiner, word joiner, byte-order mark. Built from code points so
+   the source stays plain ASCII. */
+const INVISIBLE = new RegExp("[" + [0xad, 0x200b, 0x200c, 0x200d, 0x2060, 0xfeff].map((c) => String.fromCharCode(c)).join("") + "]", "g");
+
+const NAMED = {
+  nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', apos: "'",
+  rsquo: "'", lsquo: "'", rdquo: '"', ldquo: '"', hellip: "...",
+  ndash: "-", mdash: "-", shy: "", sol: "/", bsol: "\\", colon: ":",
+  period: ".", comma: ",", hyphen: "-", dash: "-", commat: "@",
+};
+
+/* One pass, like a browser: "&amp;#32;" stays the literal text "&#32;". */
+export function decodeReferences(s) {
+  return s.replace(/&(#[0-9]+|#[xX][0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);?/g, (m, ref) => {
+    if (ref[0] === "#") {
+      const hex = ref[1] === "x" || ref[1] === "X";
+      const cp = hex ? parseInt(ref.slice(2), 16) : parseInt(ref.slice(1), 10);
+      if (!Number.isFinite(cp) || cp <= 0 || cp > 0x10ffff) return " ";
+      try { return String.fromCodePoint(cp); } catch { return " "; }
+    }
+    const v = NAMED[ref.toLowerCase()];
+    return v !== undefined ? v : " ";
+  });
+}
+
+const normalize = (s) => decodeReferences(s).replace(INVISIBLE, "");
+
 const strip = (s) =>
   s.replace(/<script[\s\S]*?<\/script>/gi, "")
    .replace(/<style[\s\S]*?<\/style>/gi, "")
    .replace(/<!--[\s\S]*?-->/g, "");
 
-const decode = (s) =>
-  s.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&#8217;|&rsquo;/g, "'")
-   .replace(/&hellip;/g, "...").replace(/&[a-z]+;/gi, " ");
+/* Two readings of the visible text: tags as word breaks, and tags removed.
+   The second catches a phrase split by an inline tag inside a word. */
+function renderedTexts(html) {
+  const body = strip(html);
+  const spaced = normalize(body.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
+  const joined = normalize(body.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ");
+  return { spaced, joined };
+}
 
-const renderedText = (html) =>
-  decode(strip(html).replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ");
+/* Every absolute or protocol-relative URL, parsed. Backslashes count as
+   slashes, as they do in a browser for http and https. */
+const URL_CANDIDATE = /(?:https?:)?[\\/]{2}[^\s"'<>()`]+/gi;
 
-/* A HighLevel form, survey or booking widget, or the form helper script. */
-const FORM_URL = /(?:https?:)?\/\/([a-z0-9.-]+)\/(?:widget\/(?:form|survey|booking)\/[^"'\s<>]*|js\/form_embed\.js)/gi;
+function widgetUrls(servedText) {
+  const out = [];
+  for (const m of servedText.matchAll(URL_CANDIDATE)) {
+    let candidate = m[0].replace(/\\/g, "/");
+    if (candidate.startsWith("//")) candidate = "https:" + candidate;
+    let u;
+    try { u = new URL(candidate); } catch { continue; }
+    const p = u.pathname.toLowerCase();
+    const isForm = p.includes("/widget/form/") || p.endsWith("/js/form_embed.js");
+    const isWidget = isForm || p.includes("/widget/survey/") || p.includes("/widget/booking/");
+    if (!isWidget) continue;
+    out.push({ host: u.hostname.toLowerCase().replace(/\.$/, ""), isForm, index: m.index, text: m[0] });
+  }
+  return out;
+}
 
 const context = (s, i, len) => s.slice(Math.max(0, i - 60), i + len + 60).replace(/\s+/g, " ").trim().slice(0, 150);
 
+function phraseMatches(texts, rx) {
+  const spaced = [...texts.spaced.matchAll(rx)].map((m) => ({ m, text: texts.spaced }));
+  if (spaced.length) return spaced;
+  return [...texts.joined.matchAll(rx)].map((m) => ({ m, text: texts.joined }));
+}
+
 export function auditFile(file, html) {
   const findings = [];
+  const served = normalize(html);
 
   // 1. Estimate Experts address anywhere in the served page. An allowed host
   //    (only ever added by written exception) is blanked out first.
-  let raw = html;
+  let raw = served;
   for (const h of ALLOWED_FORM_HOSTS) raw = raw.split(h).join(" ".repeat(h.length));
   for (const m of raw.matchAll(/estimate-experts/gi)) {
-    findings.push({ file, kind: "ESTIMATE_EXPERTS_ADDRESS", match: m[0], context: context(html, m.index, m[0].length) });
+    findings.push({ file, kind: "ESTIMATE_EXPERTS_ADDRESS", match: m[0], context: context(served, m.index, m[0].length) });
   }
 
   // 2. Form or form script served from a host that is not Mold's own.
   let formOnPage = false;
-  for (const m of html.matchAll(FORM_URL)) {
-    const host = m[1].toLowerCase();
-    if (/\/widget\/form\//i.test(m[0]) || /form_embed\.js/i.test(m[0])) formOnPage = true;
-    if (!ALLOWED_FORM_HOSTS.includes(host)) {
-      findings.push({ file, kind: "FOREIGN_FORM_HOST", match: host, context: context(html, m.index, m[0].length) });
+  for (const w of widgetUrls(served)) {
+    if (w.isForm) formOnPage = true;
+    if (!ALLOWED_FORM_HOSTS.includes(w.host)) {
+      findings.push({ file, kind: "FOREIGN_FORM_HOST", match: w.host, context: context(served, w.index, w.text.length) });
     }
   }
 
-  const text = renderedText(html);
+  const texts = renderedTexts(html);
 
   // 3. The removed review label.
-  for (const m of text.matchAll(/verified\s+customer\s+review/gi)) {
+  for (const { m, text } of phraseMatches(texts, /verified\s+customer\s+review/gi)) {
     findings.push({ file, kind: "UNSUPPORTED_REVIEW_LABEL", match: m[0], context: context(text, m.index, m[0].length) });
   }
 
   // 4. The removed "both are answered" promise: allowed only on the listed
   //    legacy pages, and a listed page that has lost it must leave the list.
-  const promises = [...text.matchAll(/both\s+are\s+answered/gi)];
+  const promises = phraseMatches(texts, /both\s+are\s+answered/gi);
   const legacy = LEGACY_ANSWER_PROMISE_PAGES.includes(file.replace(/\\/g, "/"));
   if (!legacy) {
-    for (const m of promises) {
+    for (const { m, text } of promises) {
       findings.push({ file, kind: "UNSUPPORTED_ANSWER_PROMISE", match: m[0], context: context(text, m.index, m[0].length) });
     }
   } else if (promises.length === 0) {
@@ -124,7 +184,7 @@ export function auditFile(file, html) {
   }
 
   // 5. A page that carries the form must carry its disclosure.
-  if (formOnPage && !text.includes(DISCLOSURE)) {
+  if (formOnPage && !texts.spaced.includes(DISCLOSURE)) {
     findings.push({ file, kind: "FORM_WITHOUT_DISCLOSURE", match: "form present", context: `missing: "${DISCLOSURE}"` });
   }
   return findings;
