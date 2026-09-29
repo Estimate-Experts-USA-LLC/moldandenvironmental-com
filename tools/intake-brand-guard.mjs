@@ -100,7 +100,7 @@ const SEMICOLON_TABLE =
   "Tab 9 NewLine A nbsp A0 NonBreakingSpace A0 ensp 2002 emsp 2003 emsp13 2004 emsp14 2005 numsp 2007 " +
   "puncsp 2008 thinsp 2009 ThinSpace 2009 hairsp 200A VeryThinSpace 200A ZeroWidthSpace 200B " +
   "NegativeVeryThinSpace 200B NegativeThinSpace 200B NegativeMediumSpace 200B NegativeThickSpace 200B " +
-  "zwnj 200C zwj 200D NoBreak 2060 MediumSpace 205F ApplyFunction 2061 af 2061 InvisibleTimes 2062 it 2062 " +
+  "zwnj 200C zwj 200D NoBreak 2060 MediumSpace 205F ThickSpace 205F+200A ApplyFunction 2061 af 2061 InvisibleTimes 2062 it 2062 " +
   "InvisibleComma 2063 ic 2063 apos 27 lsquo 2018 rsquo 2019 ldquo 201C rdquo 201D hellip 2026 ndash 2013 " +
   "mdash 2014 hyphen 2010 dash 2010 sol 2F bsol 5C colon 3A period 2E comma 2C commat 40 lowbar 5F num 23 " +
   "excl 21 quest 3F lpar 28 rpar 29 semi 3B equals 3D plus 2B percnt 25 dollar 24 ast 2A lsqb 5B rsqb 5D " +
@@ -109,7 +109,11 @@ const SEMICOLON_TABLE =
 function parseTable(t) {
   const parts = t.trim().split(/\s+/);
   const map = new Map();
-  for (let i = 0; i < parts.length; i += 2) map.set(parts[i], chr(parseInt(parts[i + 1], 16)));
+  for (let i = 0; i < parts.length; i += 2) {
+    // Some named references expand to more than one Unicode code point.
+    const value = parts[i + 1].split("+").map((cp) => chr(parseInt(cp, 16))).join("");
+    map.set(parts[i], value);
+  }
   return map;
 }
 const LEGACY = parseTable(LEGACY_TABLE);
@@ -203,8 +207,9 @@ const urlInput = (s) => s.replace(TAB_NEWLINE, "").replace(EDGE_C0, "");
 const URL_CANDIDATE = /(?:https?:)?[\\/]{2}[^\s"'<>()`]+/gi;
 
 /* Every attribute value of every start tag, quoted or not; a ">" inside a
-   quoted value does not end the tag. */
-const START_TAG = /<[a-zA-Z][^\s/>]*((?:\s+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*)\s*\/?>/g;
+   quoted value does not end the tag. A slash before another attribute is a
+   tokenizer parse error that browsers recover from by reading the attribute. */
+const START_TAG = /<[a-zA-Z][^\s/>]*((?:[\s/]+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*)\s*\/?>/g;
 const ATTRIBUTE = /([^\s"'>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
 
 function classify(candidate) {

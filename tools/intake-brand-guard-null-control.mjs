@@ -90,7 +90,7 @@ const originals = new Map();
 const remember = (f) => { if (!originals.has(f)) originals.set(f, readFileSync(f, "utf8")); };
 const restore = () => { for (const [f, s] of originals) writeFileSync(f, s); };
 
-const { LEGACY_ANSWER_PROMISE_PAGES: LIST } = await import(pathToFileURL(GUARD).href);
+const { LEGACY_ANSWER_PROMISE_PAGES: LIST, decodeReferences } = await import(pathToFileURL(GUARD).href);
 const PROMISE = /both\s+are\s+answered/gi;
 
 /* Legacy targets are chosen from the live list, so the control keeps working
@@ -126,6 +126,9 @@ const MUTATIONS = [
   { name: "a protocol-relative foreign form host", edits: [[HOME, beforeBody('<iframe src="//link.msgsndr.com/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
   { name: "a foreign form URL split by an encoded line feed", edits: [[HOME, beforeBody('<iframe src="https://link.msgsndr.com&#10;/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
   { name: "a foreign form URL split by a literal tab", edits: [[HOME, beforeBody('<iframe src="https://link.msgsndr.com' + String.fromCharCode(9) + '/widget/form/test"></iframe>')]], expect: "FOREIGN_FORM_HOST" },
+  { name: "a slash before src with an encoded line feed in a foreign form URL", edits: [[HOME, beforeBody('<iframe/src="https://link.msgsndr.com&#10;/widget/form/test"></iframe>' + PLANTED_DISCLOSURE)]], expect: "FOREIGN_FORM_HOST" },
+  { name: "slashes before a script src with a literal tab in a foreign URL", edits: [[HOME, beforeBody('<script//src="https://link.msgsndr.com' + String.fromCharCode(9) + '/js/form_embed.js"></script>' + PLANTED_DISCLOSURE)]], expect: "FOREIGN_FORM_HOST" },
+  { name: "a slash after a quoted attribute before a foreign form URL", edits: [[HOME, beforeBody('<iframe title="left/right > details"/src="//link.msgsndr.com&#13;/widget/form/test"></iframe>' + PLANTED_DISCLOSURE)]], expect: "FOREIGN_FORM_HOST" },
   FORM_ON_HOME
     ? { name: "the Mold form URLs split by encoded line feeds, disclosure removed", edits: [[HOME, (s) => s.split("https://links.moldandenvironmental.com/").join("https://links.moldandenvironmental.com&#10;/").replace("It is not permission for marketing email or text messages.", "")]], expect: "FORM_WITHOUT_DISCLOSURE" }
     : { name: "a Mold form URL split by an encoded line feed on a page without the disclosure", edits: [[CONTACT, beforeBody('<iframe src="https://links.moldandenvironmental.com&#10;/widget/form/test"></iframe>')]], expect: "FORM_WITHOUT_DISCLOSURE" },
@@ -137,6 +140,8 @@ const MUTATIONS = [
   { name: "the review label with decimal-encoded spaces", edits: [[HOME, beforeBody("<p>Verified&#32;customer&#32;review</p>")]], expect: "UNSUPPORTED_REVIEW_LABEL" },
   { name: "the review label with semicolonless &nbsp", edits: [[HOME, beforeBody("<p>Verified&nbspcustomer&nbspreview</p>")]], expect: "UNSUPPORTED_REVIEW_LABEL" },
   { name: "the answer promise with semicolonless &nbsp", edits: [[CONTACT, beforeBody("<p>both&nbspare&nbspanswered</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
+  { name: "the review label with multi-code-point ThickSpace references", edits: [[HOME, beforeBody("<p>Verified&ThickSpace;customer&ThickSpace;review</p>")]], expect: "UNSUPPORTED_REVIEW_LABEL" },
+  { name: "the answer promise with multi-code-point ThickSpace references", edits: [[CONTACT, beforeBody("<p>both&ThickSpace;are&ThickSpace;answered</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
   { name: "the removed answer promise comes back on the contact page", edits: [[CONTACT, beforeBody("<p>Phone and email are the quickest ways to reach us, and both are answered.</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
   { name: "the answer promise with hexadecimal-encoded spaces", edits: [[CONTACT, beforeBody("<p>both&#x20;are&#x20;answered</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
   { name: "an unlisted page named like the listed ones gets the promise", edits: [[LOOKALIKE, beforeBody("<p>Phone and email are the quickest ways to reach us, and both are answered.</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
@@ -165,6 +170,13 @@ const HARMLESS = [
     ? { name: "the Mold form URLs split by encoded line feeds, disclosure kept", edits: [[HOME, (s) => s.split("https://links.moldandenvironmental.com/").join("https://links.moldandenvironmental.com&#10;/")]] }
     : { name: "a Mold form URL split by an encoded line feed, planted with a disclosure", edits: [[HOME, beforeBody('<iframe src="https://links.moldandenvironmental.com&#10;/widget/form/test"></iframe>' + PLANTED_DISCLOSURE)]] },
   { name: "a double-encoded promise that stays literal text", edits: [[HOME, beforeBody("<p>both&amp;#32;are&amp;#32;answered</p>")]] },
+  { name: "harmless text with ThickSpace references", edits: [[HOME, beforeBody("<p>Call&ThickSpace;or&ThickSpace;email us.</p>")]] },
+  { name: "a double-encoded ThickSpace promise stays literal text", edits: [[HOME, beforeBody("<p>both&amp;ThickSpace;are&amp;ThickSpace;answered</p>")]] },
+  { name: "ThickSpace without semicolons stays literal text", edits: [[HOME, beforeBody("<p>both&ThickSpaceare&ThickSpaceanswered</p>")]] },
+  { name: "an unknown reference stays literal text", edits: [[HOME, beforeBody("<p>Verified&NotARealSpace;customer&NotARealSpace;review</p>")]] },
+  { name: "a slash before a Mold form src with an encoded line feed and disclosure", edits: [[HOME, beforeBody('<iframe/src="https://links.moldandenvironmental.com&#10;/widget/form/test"></iframe>' + PLANTED_DISCLOSURE)]] },
+  { name: "slashes before a Mold script src with a literal tab and disclosure", edits: [[HOME, beforeBody('<script//src="https://links.moldandenvironmental.com' + String.fromCharCode(9) + '/js/form_embed.js"></script>' + PLANTED_DISCLOSURE)]] },
+  { name: "a slash after a quoted attribute before a Mold form URL with disclosure", edits: [[HOME, beforeBody('<iframe title="left/right > details"/src="//links.moldandenvironmental.com&#13;/widget/form/test"></iframe>' + PLANTED_DISCLOSURE)]] },
 ];
 if (listedWithPromise.length) {
   const one = listedWithPromise[0];
@@ -184,6 +196,26 @@ function apply(edits) {
 
 let failed = false;
 const fail = (msg) => { console.error("FAIL " + msg); failed = true; };
+
+/* Exact decoder results distinguish two code points from one collapsed space,
+   and preserve HTML's semicolon, attribute-context and single-pass rules. */
+const DECODE_CASES = [
+  { name: "ThickSpace text", input: "&ThickSpace;", expected: "\u205f\u200a" },
+  { name: "ThickSpace attribute", input: "&ThickSpace;", attribute: true, expected: "\u205f\u200a" },
+  { name: "ThickSpace suffix", input: "&ThickSpace;customer", expected: "\u205f\u200acustomer" },
+  { name: "ThickSpace needs its semicolon", input: "&ThickSpace", expected: "&ThickSpace" },
+  { name: "named references are case-sensitive", input: "&thickspace;", expected: "&thickspace;" },
+  { name: "unknown longer reference", input: "&ThickSpaceX;", expected: "&ThickSpaceX;" },
+  { name: "decode once only", input: "&amp;ThickSpace;", expected: "&ThickSpace;" },
+  { name: "legacy semicolonless text", input: "&nbspcustomer", expected: "\u00a0customer" },
+  { name: "legacy semicolonless attribute", input: "&nbspcustomer", attribute: true, expected: "&nbspcustomer" },
+  { name: "legacy attribute equals sign", input: "&nbsp=customer", attribute: true, expected: "&nbsp=customer" },
+];
+for (const c of DECODE_CASES) {
+  const actual = decodeReferences(c.input, c.attribute ?? false);
+  if (actual !== c.expected) fail(`[${c.name}]: expected ${JSON.stringify(c.expected)}, got ${JSON.stringify(actual)}`);
+  else console.log(`  OK  [${c.name}] -> exact decoded value`);
+}
 
 let r = checkList();
 if (r.code !== 0) { console.error("NULL CONTROL ABORTED: the legacy list check fails on unmodified content.\n" + r.out); process.exit(1); }
@@ -233,4 +265,4 @@ if (failed) {
   console.error("\nINTAKE BRAND GUARD NULL CONTROL: FAIL");
   process.exit(1);
 }
-console.log(`INTAKE BRAND GUARD NULL CONTROL: PASS -- ${MUTATIONS.length} rule breaks caught, ${LIST_MUTATIONS.length} bad lists refused, ${HARMLESS.length} harmless changes stayed green, restore byte-identical.`);
+console.log(`INTAKE BRAND GUARD NULL CONTROL: PASS -- ${DECODE_CASES.length} decoder cases, ${MUTATIONS.length} rule breaks caught, ${LIST_MUTATIONS.length} bad lists refused, ${HARMLESS.length} harmless changes stayed green, restore byte-identical.`);
