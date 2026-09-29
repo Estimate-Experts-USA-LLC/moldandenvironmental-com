@@ -18,7 +18,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
 
-const GUARD = "tools/intake-brand-guard.mjs";
+const GUARD = ".github/guards/intake-brand-guard.mjs";
 const HOME = "index.html";
 const CONTACT = "contact-us-today/index.html";
 /* Not on the legacy list, but named like four pages that are. If the list
@@ -83,7 +83,7 @@ function run(args) {
   }
 }
 const guard = () => run([GUARD]);
-const checkList = () => run(["tools/intake-brand-guard-null-control.mjs", "--check-list"]);
+const checkList = () => run([".github/guards/intake-brand-guard-null-control.mjs", "--check-list"]);
 
 const sha = (s) => createHash("sha256").update(s).digest("hex");
 const originals = new Map();

@@ -6,7 +6,7 @@
   "engines": { "node": ">=20" },
   "scripts": {
     "guard:claims": "node tools/public-claims-guard.mjs",
-    "guard:intake": "node tools/intake-brand-guard.mjs",
+    "guard:intake": "node .github/guards/intake-brand-guard.mjs",
     "guard:assets": "node tools/asset-guard.mjs",
     "guard:layout": "node tools/layout-guard.mjs",
     "guard:cssver": "node tools/css-version.mjs",

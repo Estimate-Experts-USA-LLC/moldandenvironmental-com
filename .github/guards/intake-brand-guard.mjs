@@ -76,7 +76,7 @@ function findHtml(dir, base = dir, out = []) {
 }
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
-const SITE = path.join(ROOT, "..");
+const SITE = path.join(ROOT, "..", "..");
 
 const chr = (cp) => String.fromCodePoint(cp);
 
