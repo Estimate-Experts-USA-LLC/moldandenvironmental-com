@@ -1,0 +1,25 @@
+# Google Search Console keeps this site verified only while this exact file stays at the site root.
+# Deleting or editing it would silently remove the owner's access to the site's search data.
+# This check fails if the file is missing or changed, and proves on every run that it can fail.
+name: search-console-verification-guard
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+  schedule: [{ cron: "23 6 * * *" }]
+  workflow_dispatch:
+jobs:
+  verification-file:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: The Search Console verification file is present and unchanged
+        run: |
+          set -e
+          check() { [ "$(cat googleff429048bc74cfe1.html 2>/dev/null)" = "google-site-verification: googleff429048bc74cfe1.html" ]; }
+          check || { echo "::error::googleff429048bc74cfe1.html is missing or changed; Search Console verification would be lost"; exit 1; }
+          mv googleff429048bc74cfe1.html /tmp/verification.bak
+          if check; then echo "::error::NULL CONTROL FAILED - the check passed with the file removed"; exit 1; fi
+          mv /tmp/verification.bak googleff429048bc74cfe1.html
+          check
+          echo "verification file OK; null control OK (fails when removed, passes when restored)"
