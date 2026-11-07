@@ -13,7 +13,8 @@
  * Each mutation asserts it actually changed its file, so a stale anchor
  * cannot grade the guard on unmodified content.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, rmdirSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
@@ -48,13 +49,17 @@ const APPROVED_INITIAL_LEGACY = [
   "terms-of-services/index.html",
 ];
 
-function listProblems(list) {
+/* The approved set for the "both answered" wording, as read on the release on
+   2026-11-07. The same terms apply: the guard's list may only be a subset. */
+const APPROVED_BOTH_ANSWERED = ["get-an-quote/index.html"];
+
+function listProblems(list, approved = APPROVED_INITIAL_LEGACY) {
   const problems = [];
   if (!Array.isArray(list)) return ["the legacy list is not an array"];
   const seen = new Set();
   for (const p of list) {
     if (typeof p !== "string" || !/^[a-z0-9-]+\/index\.html$/.test(p)) problems.push(`not an exact page path: ${p}`);
-    else if (!APPROVED_INITIAL_LEGACY.includes(p)) problems.push(`outside the approved initial set: ${p}`);
+    else if (!approved.includes(p)) problems.push(`outside the approved initial set: ${p}`);
     if (seen.has(p)) problems.push(`listed twice: ${p}`);
     seen.add(p);
   }
@@ -64,13 +69,13 @@ function listProblems(list) {
 
 /* Child-process mode: import the guard fresh and check its list. */
 if (process.argv[2] === "--check-list") {
-  const { LEGACY_ANSWER_PROMISE_PAGES } = await import(pathToFileURL(GUARD).href + "?t=" + Date.now());
-  const problems = listProblems(LEGACY_ANSWER_PROMISE_PAGES);
+  const { LEGACY_ANSWER_PROMISE_PAGES, LEGACY_BOTH_ANSWERED_PAGES } = await import(pathToFileURL(GUARD).href + "?t=" + Date.now());
+  const problems = [...listProblems(LEGACY_ANSWER_PROMISE_PAGES), ...listProblems(LEGACY_BOTH_ANSWERED_PAGES, APPROVED_BOTH_ANSWERED)];
   if (problems.length) {
     console.error("LEGACY LIST: FAIL\n  " + problems.join("\n  "));
     process.exit(1);
   }
-  console.log(`LEGACY LIST: PASS -- ${LEGACY_ANSWER_PROMISE_PAGES.length} of ${APPROVED_INITIAL_LEGACY.length} approved pages listed`);
+  console.log(`LEGACY LIST: PASS -- ${LEGACY_ANSWER_PROMISE_PAGES.length} of ${APPROVED_INITIAL_LEGACY.length} and ${LEGACY_BOTH_ANSWERED_PAGES.length} of ${APPROVED_BOTH_ANSWERED.length} approved pages listed`);
   process.exit(0);
 }
 
@@ -90,14 +95,21 @@ const originals = new Map();
 const remember = (f) => { if (!originals.has(f)) originals.set(f, readFileSync(f, "utf8")); };
 const restore = () => { for (const [f, s] of originals) writeFileSync(f, s); };
 
-const { LEGACY_ANSWER_PROMISE_PAGES: LIST, decodeReferences } = await import(pathToFileURL(GUARD).href);
+const { LEGACY_ANSWER_PROMISE_PAGES: LIST, LEGACY_BOTH_ANSWERED_PAGES: BOTH_LIST, auditOtherFile, decodeReferences } = await import(pathToFileURL(GUARD).href);
 const PROMISE = /both\s+are\s+answered/gi;
+const BOTH_ANSWERED_ANCHOR = /both\s+answered/i;
+const BOTH_LIST_DECL = "export const LEGACY_BOTH_ANSWERED_PAGES = [\n";
+/* Text files only: the control reads and restores files as text. A plant in
+   binary bytes is covered by the direct call to auditOtherFile below. */
+const OTHER_FILES = ["robots.txt", "sitemap.xml", "FORM_INVENTORY.csv", "tools/asset-guard.mjs", "assets/css/me-home.css"];
+const append = (line) => (s) => s + line + "\n";
+const NEW_FILE_UNDER_LOWER_GITHUB = "docs/.github/planted-by-null-control.txt";
 
 /* Legacy targets are chosen from the live list, so the control keeps working
    as the list shrinks. */
 const listedWithPromise = LIST.filter((p) => { const s = readFileSync(p, "utf8"); PROMISE.lastIndex = 0; return PROMISE.test(s); });
 
-for (const f of [GUARD, HOME, CONTACT, LOOKALIKE, ...LIST]) remember(f);
+for (const f of [GUARD, HOME, CONTACT, LOOKALIKE, ...LIST, ...BOTH_LIST, ...OTHER_FILES]) remember(f);
 
 const beforeBody = (html) => (s) => s.replace("</body>", html + "\n</body>");
 
@@ -145,7 +157,30 @@ const MUTATIONS = [
   { name: "the removed answer promise comes back on the contact page", edits: [[CONTACT, beforeBody("<p>Phone and email are the quickest ways to reach us, and both are answered.</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
   { name: "the answer promise with hexadecimal-encoded spaces", edits: [[CONTACT, beforeBody("<p>both&#x20;are&#x20;answered</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
   { name: "an unlisted page named like the listed ones gets the promise", edits: [[LOOKALIKE, beforeBody("<p>Phone and email are the quickest ways to reach us, and both are answered.</p>")]], expect: "UNSUPPORTED_ANSWER_PROMISE" },
+  { name: "the plain name in visible text", edits: [[HOME, beforeBody("<p>Estimate Experts</p>")]], expect: "ESTIMATE_EXPERTS_NAME" },
+  { name: "the plain name in lower case with a no-break space", edits: [[HOME, beforeBody("<p>estimate&nbsp;experts</p>")]], expect: "ESTIMATE_EXPERTS_NAME" },
+  { name: "the plain name split by a tag", edits: [[HOME, beforeBody("<p>Estimate<b> </b>Experts</p>")]], expect: "ESTIMATE_EXPERTS_NAME" },
+  { name: "the plain name inside a word split by a tag", edits: [[HOME, beforeBody("<p>Esti<b>mate</b> Exp<b>erts</b></p>")]], expect: "ESTIMATE_EXPERTS_NAME" },
+  { name: "the plain name in a search description", edits: [[HOME, (s) => s.replace("</head>", '<meta name="x-test" content="Estimate Experts" />\n</head>')]], expect: "ESTIMATE_EXPERTS_NAME" },
+  { name: "the plain name in search data", edits: [[HOME, beforeBody('<script type="application/ld+json">{"name":"Estimate Experts"}</script>')]], expect: "ESTIMATE_EXPERTS_NAME" },
+  { name: "the name run together", edits: [[HOME, beforeBody("<p>EstimateExperts</p>")]], expect: "ESTIMATE_EXPERTS_NAME" },
+  { name: "'both answered' on the contact page", edits: [[CONTACT, beforeBody("<p>Phone and email are both answered.</p>")]], expect: "BOTH_ANSWERED_WORDING" },
+  { name: "'both answered' on a page listed only for the exact promise", edits: [[LIST[0] ?? CONTACT, beforeBody("<p>Phone and email are both answered.</p>")]], expect: "BOTH_ANSWERED_WORDING" },
+  { name: "'both get answered'", edits: [[CONTACT, beforeBody("<p>They both get answered.</p>")]], expect: "BOTH_ANSWERED_WORDING" },
+  { name: "'both will be answered'", edits: [[CONTACT, beforeBody("<p>They both will be answered.</p>")]], expect: "BOTH_ANSWERED_WORDING" },
+  { name: "'both of them are answered'", edits: [[CONTACT, beforeBody("<p>Both of them are answered.</p>")]], expect: "BOTH_ANSWERED_WORDING" },
+  { name: "'both are always answered'", edits: [[CONTACT, beforeBody("<p>Both are always answered.</p>")]], expect: "BOTH_ANSWERED_WORDING" },
+  { name: "'both are promptly answered' with encoded spaces", edits: [[CONTACT, beforeBody("<p>Both&#32;are&#32;promptly&#32;answered.</p>")]], expect: "BOTH_ANSWERED_WORDING" },
+  { name: "'both answered' split by a tag", edits: [[CONTACT, beforeBody("<p>both <b>answered</b></p>")]], expect: "BOTH_ANSWERED_WORDING" },
+  { name: "'both answered' in a search description", edits: [[CONTACT, (s) => s.replace("</head>", '<meta name="x-test" content="Phone and email are both answered." />\n</head>')]], expect: "BOTH_ANSWERED_WORDING" },
+  { name: "an unlisted page named like the listed ones gets 'both answered'", edits: [[LOOKALIKE, beforeBody("<p>Phone and email are both answered.</p>")]], expect: "BOTH_ANSWERED_WORDING" },
+  ...OTHER_FILES.map((f) => ({ name: `an Estimate Experts address in ${f}`, edits: [[f, append(f.endsWith(".xml") ? "<!-- https://www.estimate-experts.com/ -->" : f.endsWith(".css") ? "/* https://www.estimate-experts.com/ */" : f.endsWith(".mjs") ? "// https://www.estimate-experts.com/" : "# https://www.estimate-experts.com/")]], expect: "ESTIMATE_EXPERTS_ADDRESS_IN_FILE" })),
+  { name: "the address run together, in upper case, in robots.txt", edits: [["robots.txt", append("# WWW.ESTIMATEEXPERTS.COM")]], expect: "ESTIMATE_EXPERTS_ADDRESS_IN_FILE" },
 ];
+if (BOTH_LIST.length) {
+  const target = BOTH_LIST[0];
+  MUTATIONS.push({ name: `a page cleaned of 'both answered' but left on its list (${target})`, edits: [[target, (s) => s.replace(BOTH_ANSWERED_ANCHOR, "both reachable")]], expect: "STALE_LEGACY_ENTRY" });
+}
 if (listedWithPromise.length) {
   const target = listedWithPromise[0];
   MUTATIONS.push({ name: `a listed page cleaned but left on the list (${target})`, edits: [[target, (s) => s.replace(PROMISE, "are listed below")]], expect: "STALE_LEGACY_ENTRY" });
@@ -156,6 +191,8 @@ const LIST_MUTATIONS = [
   { name: "a pattern entry instead of an exact path", edits: [[GUARD, (s) => s.replace("export const LEGACY_ANSWER_PROMISE_PAGES = [\n", 'export const LEGACY_ANSWER_PROMISE_PAGES = [\n  "mold-removal-*/index.html",\n')]] },
   { name: "an expansion to a page outside the approved set", edits: [[GUARD, (s) => s.replace("export const LEGACY_ANSWER_PROMISE_PAGES = [\n", 'export const LEGACY_ANSWER_PROMISE_PAGES = [\n  "contact-us-today/index.html",\n')]] },
   { name: "the look-alike page added to the list", edits: [[GUARD, (s) => s.replace("export const LEGACY_ANSWER_PROMISE_PAGES = [\n", `export const LEGACY_ANSWER_PROMISE_PAGES = [\n  "${LOOKALIKE}",\n`)]] },
+  { name: "the contact page added to the 'both answered' list", edits: [[GUARD, (s) => s.replace(BOTH_LIST_DECL, BOTH_LIST_DECL + '  "contact-us-today/index.html",\n')]] },
+  { name: "a pattern entry on the 'both answered' list", edits: [[GUARD, (s) => s.replace(BOTH_LIST_DECL, BOTH_LIST_DECL + '  "mold-*/index.html",\n')]] },
 ];
 
 /* Harmless changes: the guard AND the list check must both stay green. */
@@ -177,7 +214,15 @@ const HARMLESS = [
   { name: "a slash before a Mold form src with an encoded line feed and disclosure", edits: [[HOME, beforeBody('<iframe/src="https://links.moldandenvironmental.com&#10;/widget/form/test"></iframe>' + PLANTED_DISCLOSURE)]] },
   { name: "slashes before a Mold script src with a literal tab and disclosure", edits: [[HOME, beforeBody('<script//src="https://links.moldandenvironmental.com' + String.fromCharCode(9) + '/js/form_embed.js"></script>' + PLANTED_DISCLOSURE)]] },
   { name: "a slash after a quoted attribute before a Mold form URL with disclosure", edits: [[HOME, beforeBody('<iframe title="left/right > details"/src="//links.moldandenvironmental.com&#13;/widget/form/test"></iframe>' + PLANTED_DISCLOSURE)]] },
+  { name: "'estimate' and 'experts' apart in a sentence", edits: [[HOME, beforeBody("<p>Get a free estimate. Our experts can help.</p>")]] },
+  { name: "'estimate' and 'experts' with a word between them", edits: [[HOME, beforeBody("<p>An estimate from experts.</p>")]] },
+  { name: "'both' and 'answered' that make no promise", edits: [[CONTACT, beforeBody("<p>Both sides have answered. We answered both questions.</p>")]] },
+  { name: "the words 'estimate' and 'experts' apart in robots.txt", edits: [["robots.txt", append("# estimate from experts")]] },
 ];
+if (BOTH_LIST.length) {
+  const one = BOTH_LIST[0];
+  HARMLESS.push({ name: `a legitimate shrink: ${one} cleaned of 'both answered' and taken off its list`, edits: [[one, (s) => s.replace(BOTH_ANSWERED_ANCHOR, "both reachable")], [GUARD, (s) => s.replace(BOTH_LIST_DECL + `  "${one}",\n`, BOTH_LIST_DECL)]] });
+}
 if (listedWithPromise.length) {
   const one = listedWithPromise[0];
   HARMLESS.push({ name: `a legitimate shrink: ${one} cleaned and taken off the list`, edits: [...cleanAll([one]), [GUARD, dropFromList([one])]] });
@@ -217,6 +262,13 @@ for (const c of DECODE_CASES) {
   else console.log(`  OK  [${c.name}] -> exact decoded value`);
 }
 
+/* Rule 8 on real binary bytes, called directly so no image is ever rewritten. */
+const binary = (text) => Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0x00]), Buffer.from(text, "latin1"), Buffer.from([0x00, 0xff, 0xd9])]);
+if (auditOtherFile("x.jpg", binary("https://www.estimate-experts.com/")).length !== 1) fail("[rule 8 on binary bytes]: the address in binary bytes was not found.");
+else console.log("  OK  [rule 8 on binary bytes] -> ESTIMATE_EXPERTS_ADDRESS_IN_FILE");
+if (auditOtherFile("x.jpg", binary("estimate from experts")).length !== 0) fail("[rule 8 on binary bytes]: harmless bytes were flagged.");
+else console.log("  OK  [rule 8 on harmless binary bytes] -> no finding");
+
 let r = checkList();
 if (r.code !== 0) { console.error("NULL CONTROL ABORTED: the legacy list check fails on unmodified content.\n" + r.out); process.exit(1); }
 console.log(r.out.trim());
@@ -253,6 +305,16 @@ for (const m of HARMLESS) {
   else if (c.code !== 0) fail(`[${m.name}]: the list check FAILED on a harmless change.\n` + c.out);
   else console.log(`  OK  [${m.name}] -> still PASS`);
 }
+
+/* Only the top-level .github folder goes unserved: the same address in a
+   .github folder lower down must fail. The planted file is removed afterwards. */
+mkdirSync(path.dirname(NEW_FILE_UNDER_LOWER_GITHUB), { recursive: true });
+writeFileSync(NEW_FILE_UNDER_LOWER_GITHUB, "https://www.estimate-experts.com/\n");
+const lower = guard();
+rmSync(NEW_FILE_UNDER_LOWER_GITHUB);
+rmdirSync(path.dirname(NEW_FILE_UNDER_LOWER_GITHUB));
+if (lower.code === 0 || !lower.out.includes("ESTIMATE_EXPERTS_ADDRESS_IN_FILE")) fail("[a .github folder below the top]: the guard did not fail with ESTIMATE_EXPERTS_ADDRESS_IN_FILE.");
+else console.log("  OK  [a .github folder below the top] -> ESTIMATE_EXPERTS_ADDRESS_IN_FILE");
 
 restore();
 let changed = 0;

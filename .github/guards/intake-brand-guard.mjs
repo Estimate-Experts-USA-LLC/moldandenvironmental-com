@@ -8,7 +8,12 @@
      4. promises that phone and email are "both answered"
         (UNSUPPORTED_ANSWER_PROMISE);
      5. carries the inquiry form without its disclosure sentence
-        (FORM_WITHOUT_DISCLOSURE).
+        (FORM_WITHOUT_DISCLOSURE);
+     6. carries the plain name Estimate Experts (ESTIMATE_EXPERTS_NAME);
+     7. promises the same thing in other words, such as "both answered" or
+        "both are always answered" (BOTH_ANSWERED_WORDING).
+   It also fails if any served file that is not a page carries an Estimate
+   Experts address (ESTIMATE_EXPERTS_ADDRESS_IN_FILE, rule 8).
    Why it exists: the other guards passed a head that loaded the form from an
    Estimate Experts address, and passed main while it still showed three
    unsupported review quotes and the "both are answered" promise. Mold must
@@ -64,6 +69,15 @@ export const LEGACY_ANSWER_PROMISE_PAGES = [
   "terms-of-services/index.html",
 ];
 
+/* Pages that already said phone and email are "both answered" when rule 7 was
+   added, 2026-11-07. Same terms as the list above: removing the wording is a
+   separate copy change, this list may only shrink, a page that no longer
+   carries the wording fails as STALE_LEGACY_ENTRY until it is taken off, and
+   no other page may carry it. The null control holds the approved set. */
+export const LEGACY_BOTH_ANSWERED_PAGES = [
+  "get-an-quote/index.html",
+];
+
 /* Same walker as the claims guard: fs.globSync does not exist on Node 20. */
 function findHtml(dir, base = dir, out = []) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
@@ -71,6 +85,20 @@ function findHtml(dir, base = dir, out = []) {
     const full = dir + "/" + e.name;
     if (e.isDirectory()) findHtml(full, base, out);
     else if (e.name.endsWith(".html")) out.push(full.slice(base.length + 1));
+  }
+  return out;
+}
+
+/* Every other served file. GitHub Pages serves all of the repository except
+   the top-level .github folder, so that one folder is skipped, and only at the
+   top. node_modules is git-ignored and .git is not part of the site. */
+function findOtherServedFiles(dir, base = dir, out = []) {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === "node_modules" || e.name === ".git") continue;
+    if (dir === base && e.name === ".github") continue;
+    const full = dir + "/" + e.name;
+    if (e.isDirectory()) findOtherServedFiles(full, base, out);
+    else if (!e.name.endsWith(".html")) out.push(full.slice(base.length + 1));
   }
   return out;
 }
@@ -258,6 +286,18 @@ function phraseMatches(texts, rx) {
   return [...texts.joined.matchAll(rx)].map((m) => ({ m, text: texts.joined }));
 }
 
+/* Matches in the served page; if none, matches in the rendered text, where a
+   phrase split by tags reads whole. */
+function servedOrRendered(served, texts, rx) {
+  const whole = [...served.matchAll(rx)].map((m) => ({ m, text: served }));
+  return whole.length ? whole : phraseMatches(texts, rx);
+}
+
+/* "both answered", "are both answered", "both get answered", "both will be
+   answered", "both of them are answered", "both are always answered", "both
+   are promptly answered". Not "both sides have answered" or "answered both". */
+const BOTH_ANSWERED = /\bboth\s+(?:(?:of\s+(?:them|these)\s+)?(?:are|get|were|will\s+be)\s+)?(?:(?:always|[a-z]+ly)\s+)?answered\b/gi;
+
 export function auditFile(file, html) {
   const findings = [];
   const served = normalizeText(html);
@@ -304,17 +344,47 @@ export function auditFile(file, html) {
   if (formOnPage && !texts.spaced.includes(DISCLOSURE)) {
     findings.push({ file, kind: "FORM_WITHOUT_DISCLOSURE", match: "form present", context: `missing: "${DISCLOSURE}"` });
   }
+
+  // 6. The plain name, anywhere in the served page or split by tags in the
+  //    rendered text. The hyphenated address is rule 1.
+  for (const { m, text } of servedOrRendered(served, texts, /estimate(?:\s+|_)?experts/gi)) {
+    findings.push({ file, kind: "ESTIMATE_EXPERTS_NAME", match: m[0], context: context(text, m.index, m[0].length) });
+  }
+
+  // 7. The "both answered" wording, anywhere in the served page (search
+  //    descriptions and FAQ search data count). The exact phrase "both are
+  //    answered" belongs to rule 4 and its own list, so it is not counted here.
+  const wording = servedOrRendered(served, texts, BOTH_ANSWERED).filter(({ m }) => !/^both\s+are\s+answered$/i.test(m[0]));
+  if (!LEGACY_BOTH_ANSWERED_PAGES.includes(file.replace(/\\/g, "/"))) {
+    for (const { m, text } of wording) {
+      findings.push({ file, kind: "BOTH_ANSWERED_WORDING", match: m[0], context: context(text, m.index, m[0].length) });
+    }
+  } else if (wording.length === 0) {
+    findings.push({ file, kind: "STALE_LEGACY_ENTRY", match: "listed but clean", context: "remove this page from LEGACY_BOTH_ANSWERED_PAGES" });
+  }
   return findings;
+}
+
+/* 8. An Estimate Experts address in a served file that is not a page. Read as
+   bytes, so images and fonts are covered too. Not decoded: UTF-16 text and
+   text inside compressed data. */
+export function auditOtherFile(file, bytes) {
+  const text = bytes.toString("latin1");
+  return [...text.matchAll(/estimate-?experts/gi)].map((m) => (
+    { file, kind: "ESTIMATE_EXPERTS_ADDRESS_IN_FILE", match: m[0], context: context(text, m.index, m[0].length).replace(/[^ -~]+/g, " ") }
+  ));
 }
 
 if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith("intake-brand-guard.mjs")) {
   const files = findHtml(SITE);
   let all = [];
   for (const f of files) all = all.concat(auditFile(f, readFileSync(path.join(SITE, f), "utf8")));
+  const others = findOtherServedFiles(SITE);
+  for (const f of others) all = all.concat(auditOtherFile(f, readFileSync(path.join(SITE, f))));
   if (all.length) {
-    console.error(`INTAKE BRAND GUARD: ${all.length} finding(s) in ${files.length} pages\n`);
+    console.error(`INTAKE BRAND GUARD: ${all.length} finding(s) in ${files.length} pages and ${others.length} other served files\n`);
     for (const f of all) console.error(`  [${f.kind}] ${f.file}\n     ${f.match} -- ...${f.context}...\n`);
     process.exit(1);
   }
-  console.log(`INTAKE BRAND GUARD: PASS -- ${files.length} pages, 0 findings.`);
+  console.log(`INTAKE BRAND GUARD: PASS -- ${files.length} pages and ${others.length} other served files, 0 findings.`);
 }
